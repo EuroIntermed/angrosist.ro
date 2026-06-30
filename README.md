@@ -47,9 +47,8 @@ The AI widget is embedded before `</body>`:
 ```html
 <script src="https://dash.staging.euro-intermed.com/widget.js" defer></script>
 <script>
-  window.AngrosistChat.init({ containerId: "ai-widget-container",
-    vertical: "angrosist", intent: "buy", lang: "ro",
-    privacyUrl: "/privacy.html" });
+  window.AngrosistChat.init({ vertical: "angrosist", intent: "buy",
+    lang: "ro", privacyUrl: "/privacy.html" });
 </script>
 ```
 
