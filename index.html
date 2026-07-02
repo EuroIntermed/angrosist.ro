@@ -524,13 +524,14 @@
       </div>
     </div>
 
-    <!-- Euro Intermed AI chat widget — single intake channel for angrosist.ro -->
-    <script src="https://dash.staging.euro-intermed.com/widget.js" defer></script>
+    <!-- WIDGET:START — Euro Intermed AI chat widget for angrosist.ro.
+         Origin + visibility are injected at deploy time by build.mjs from the
+         WIDGET_BASE_URL / WIDGET_ENABLED Vercel env vars — nothing is hardcoded. -->
+    <script src="__WIDGET_BASE_URL__/widget.js" defer></script>
     <script>
       // The backend API URL is baked into widget.js at build time (frontend's
       // VITE_API_URL). Do NOT pass apiUrl here — an override would replace that
-      // single source of truth. To repoint the backend, change VITE_API_URL in
-      // the frontend deploy and rebuild widget.js; all embeds follow.
+      // single source of truth. The widget ORIGIN comes from WIDGET_BASE_URL.
       window.addEventListener("DOMContentLoaded", function () {
         if (!window.AngrosistChat) return;
         // No containerId → floating launcher button (bottom-right).
@@ -542,5 +543,6 @@
         });
       });
     </script>
+    <!-- WIDGET:END -->
   </body>
 </html>

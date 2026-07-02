@@ -42,21 +42,30 @@ The qualification flow avoids high-friction company identifiers, document transf
 Static site — deploy this folder directly as its own Vercel project (no build
 step; `vercel.json` sets clean URLs + security headers).
 
-The AI widget is embedded before `</body>`:
+The AI widget is embedded before `</body>`, inside `<!-- WIDGET:START -->` /
+`<!-- WIDGET:END -->` markers, with a `__WIDGET_BASE_URL__` placeholder:
 
 ```html
-<script src="https://dash.staging.euro-intermed.com/widget.js" defer></script>
+<script src="__WIDGET_BASE_URL__/widget.js" defer></script>
 <script>
   window.AngrosistChat.init({ vertical: "angrosist", intent: "buy",
     lang: "ro", privacyUrl: "/privacy.html" });
 </script>
 ```
 
-`widget.js` is served by the deployed frontend project (the dashboard build now
-bundles it). The backend API URL is **baked into `widget.js` at build time** from
-the frontend's `VITE_API_URL` — the site does not pass `apiUrl`. To repoint the
-backend, change `VITE_API_URL` in the frontend deploy and rebuild `widget.js`;
-all embeds follow automatically. No URL is hardcoded in the sites.
+**The widget origin and visibility are NOT hardcoded — they come from env vars**
+injected at deploy time by `build.mjs` (Vercel runs it as the build command; the
+templated site is served from `dist/`). Set these per Vercel project:
+
+| Env var | Default | Purpose |
+|---|---|---|
+| `WIDGET_BASE_URL` | `https://dash.euro-intermed.com` | Origin serving `widget.js`. Set `https://dash.staging.euro-intermed.com` on the staging project. |
+| `WIDGET_ENABLED` | `true` | `false` removes the widget entirely from the page. |
+
+`widget.js` is served by the deployed frontend project. The backend API URL is
+**baked into `widget.js` at build time** from the frontend's `VITE_API_URL` — the
+site does not pass `apiUrl`. To repoint the backend, change `VITE_API_URL` in the
+frontend deploy and rebuild `widget.js`; all embeds follow automatically.
 
 ## Production Blockers
 
