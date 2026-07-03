@@ -132,7 +132,7 @@
 
   function updateWhatsApp(intent) {
     const config = routeConfigs[intent] || routeConfigs["product-rfq"];
-    const href = `https://wa.me/40765934455?text=${encodeURIComponent(config.whatsappText)}`;
+    const href = `https://wa.me/40745799995?text=${encodeURIComponent(config.whatsappText)}`;
     whatsappLinks.forEach((link) => {
       link.href = href;
       if (link.hasAttribute("data-ag-whatsapp-link")) {

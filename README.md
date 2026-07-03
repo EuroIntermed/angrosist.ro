@@ -20,8 +20,8 @@ remain as passive contact fallbacks.
 V1 uses the shared Euro Intermed contact details until Angrosist-specific contact data is confirmed:
 
 - Email: `eurointermeds@gmail.com`
-- Phone / WhatsApp: `+40765934455`
-- WhatsApp URL: `https://wa.me/40765934455`
+- Phone / WhatsApp: `+40745799995`
+- WhatsApp URL: `https://wa.me/40745799995`
 - Calendly: `https://calendly.com/eurointermeds`
 
 ## Form Behavior
@@ -59,7 +59,7 @@ templated site is served from `dist/`). Set these per Vercel project:
 
 | Env var | Default | Purpose |
 |---|---|---|
-| `WIDGET_BASE_URL` | `https://dash.euro-intermed.com` | Origin serving `widget.js`. Set `https://dash.staging.euro-intermed.com` on the staging project. |
+| `WIDGET_BASE_URL` | `https://dash.euro-intermed.com` | Origin serving `widget.js`. Set `https://staging-dash.euro-intermed.com` on the staging project. |
 | `WIDGET_ENABLED` | `true` | `false` removes the widget entirely from the page. |
 
 `widget.js` is served by the deployed frontend project. The backend API URL is
