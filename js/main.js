@@ -357,3 +357,26 @@
   initCategoryButtons();
   initMobileCtaObserver();
 })();
+
+// --- GA4 analytics wiring (KPI §A.2) -----------------------------------------
+// Inert when analytics is disabled: gtag() only exists when build.mjs injected
+// the GA snippet (GA_MEASUREMENT_ID set). No IDs here.
+(function () {
+  function gaEvent(name, params) {
+    if (typeof window.gtag === "function") window.gtag("event", name, params || {});
+  }
+  // Best-effort `chat_opened` when the floating widget launcher is clicked. The
+  // widget mounts asynchronously into #__angrosist_widget__; the launcher is the
+  // 💬 button shown while the panel is closed. We match on that glyph so
+  // panel-internal buttons don't trigger the event.
+  document.addEventListener(
+    "click",
+    function (event) {
+      var btn = event.target.closest("#__angrosist_widget__ button");
+      if (!btn) return;
+      if ((btn.textContent || "").indexOf("💬") === -1) return;
+      gaEvent("chat_opened", { channel: "web_widget" });
+    },
+    true
+  );
+})();

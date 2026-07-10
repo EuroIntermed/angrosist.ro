@@ -61,6 +61,12 @@ templated site is served from `dist/`). Set these per Vercel project:
 |---|---|---|
 | `WIDGET_BASE_URL` | `https://dash.euro-intermed.com` | Origin serving `widget.js`. Set `https://staging-dash.euro-intermed.com` on the staging project. |
 | `WIDGET_ENABLED` | `true` | `false` removes the widget entirely from the page. |
+| `GA_MEASUREMENT_ID` | *(empty)* | GA4 Measurement ID, e.g. `G-XXXXXXX`; set per Vercel project. Leave empty to disable analytics (no GA snippet, no cookie banner). Injected into the `<!-- GA:START -->` / `<!-- GA:END -->` block at build time — never hardcoded. |
+
+Analytics uses Google Consent Mode v2 (analytics storage denied by default) with a
+lightweight cookie banner that grants consent on Accept and persists it in
+`localStorage`. A best-effort `chat_opened` GA event fires when the chat widget
+launcher is opened (KPI §A.2).
 
 `widget.js` is served by the deployed frontend project. The backend API URL is
 **baked into `widget.js` at build time** from the frontend's `VITE_API_URL` — the
