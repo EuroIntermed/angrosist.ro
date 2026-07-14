@@ -28,7 +28,6 @@ const privacyUrl = localizePath('/confidentialitate', locale)
         is:inline
         define:vars={{ lang: locale, privacyUrl, accent: '#0a7290', accentText: '#ffffff' }}
       >
-        {`
         // Poll for the deferred widget bundle instead of bailing on a single
         // DOMContentLoaded check: widget.js loads with 'defer', so AngrosistChat
         // may not exist yet when this inline script runs. Retry (up to ~10s) until
@@ -51,7 +50,6 @@ const privacyUrl = localizePath('/confidentialitate', locale)
             if (n++ < 200) setTimeout(go, 50);
           })();
         })();
-      `}
       </script>
     </>
   )

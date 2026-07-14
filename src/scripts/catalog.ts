@@ -274,7 +274,35 @@ function initCatalog(): void {
     else setStatus(cfg.strings.empty, 'empty')
   }
 
+  const fetchGroups = async (): Promise<CategoryGroup[]> => {
+    const res = await fetch(cfg.productsUrl, {
+      headers: { Accept: 'text/csv, application/json' },
+      cache: 'default',
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return groupByCategory(limitToCategory(parseProducts(await res.text())))
+  }
+
   const load = async () => {
+    // Single-category pages already carry build-time rows + data. Render the
+    // embedded rows INSTANTLY (no network, no blank "loading" flash, order
+    // buttons wired), then refresh from the live sheet in the background and
+    // swap in only on success. A slow/failed/CORS'd fetch simply leaves the
+    // build-time table in place — the page is never blanked.
+    if (cfg.category) {
+      showFallback(false)
+      if (!cfg.productsUrl) return
+      try {
+        const groups = await fetchGroups()
+        if (groups.length) render(groups, false)
+      } catch {
+        /* keep the build-time rows already on screen */
+      }
+      return
+    }
+
+    // Full catalog (no live rows pre-rendered): loading → live | empty | error,
+    // with the bundled sample as a fallback when no URL is configured.
     if (filtersEl) filtersEl.hidden = true
     countEl.hidden = true
     wrapEl.hidden = true
@@ -288,25 +316,13 @@ function initCatalog(): void {
 
     setStatus(cfg.strings.loading, 'loading')
     try {
-      const res = await fetch(cfg.productsUrl, {
-        headers: { Accept: 'text/csv, application/json' },
-        cache: 'default',
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const text = await res.text()
-      const groups = groupByCategory(limitToCategory(parseProducts(text)))
+      const groups = await fetchGroups()
       if (!groups.length) {
-        // Empty live result: on a category page fall back to the build-time rows
-        // rather than blanking the page; on the full catalog show the empty state.
-        if (cfg.category) return showFallback(false)
         setStatus(cfg.strings.empty, 'empty')
         return
       }
       render(groups, false)
     } catch {
-      // Category pages restore their build-time rows; the full catalog (no live
-      // rows pre-rendered) surfaces a retryable error.
-      if (cfg.category) return showFallback(false)
       setStatus(cfg.strings.error, 'error', true)
     }
   }
