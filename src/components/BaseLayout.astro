@@ -19,8 +19,17 @@ import '@fontsource-variable/dm-sans'
 import '../styles/global.css'
 import type { Locale } from '../i18n/ui'
 import { t, switchLocalePath, htmlLang, ogLocale } from '../i18n/utils'
-import { siteUrl, analyticsEnabled, contactEmail, contactPhone, verticalUrls } from '../lib/config'
+import {
+  siteUrl,
+  analyticsEnabled,
+  contactEmail,
+  contactPhone,
+  verticalUrls,
+  socialLinks,
+  googleSiteVerification,
+} from '../lib/config'
 import { ogSlug } from '../lib/og'
+import { faqSchema, breadcrumbSchema, type FaqItem } from '../lib/schema'
 import Nav from './Nav.astro'
 import Footer from './Footer.astro'
 import Analytics from './Analytics.astro'
@@ -35,8 +44,20 @@ interface Props {
   ogType?: string
   /** Hide the footer (e.g. for the 404). */
   bare?: boolean
+  /** FAQ items for a homepage FAQPage node (omit → no FAQPage emitted). */
+  faqItems?: FaqItem[]
+  /** Leaf breadcrumb label for a non-home page (omit → no BreadcrumbList). */
+  breadcrumb?: string
 }
-const { locale, title, description, ogType = 'website', bare = false } = Astro.props
+const {
+  locale,
+  title,
+  description,
+  ogType = 'website',
+  bare = false,
+  faqItems,
+  breadcrumb,
+} = Astro.props
 
 const nav = t(locale).nav
 const path = Astro.url.pathname
@@ -46,6 +67,8 @@ const enUrl = new URL(switchLocalePath(path, 'en'), siteUrl).href
 // Branded 1200x630 social card generated at build (see src/pages/og + src/lib/og).
 // Absolute URL from the env-driven siteUrl — no hardcoded host (Hard Rule #1).
 const ogImage = new URL(`/og/${ogSlug(path, locale)}.png`, siteUrl).href
+// Absolute logo for the Organization node (Hard Rule #1 — from env-driven origin).
+const logoUrl = new URL('/favicon.svg', siteUrl).href
 
 // JSON-LD: Angrosist WebSite, published by the Euro-Intermed operating company.
 const siteJsonLd = {
@@ -57,6 +80,7 @@ const siteJsonLd = {
   publisher: {
     '@type': 'Organization',
     name: 'EURO INTERMED SOLUTIONS',
+    logo: logoUrl,
     email: contactEmail,
     telephone: contactPhone,
     url: verticalUrls.hub,
@@ -67,8 +91,19 @@ const siteJsonLd = {
       addressLocality: 'Brașov',
       addressCountry: 'RO',
     },
+    // Env-configured official social profiles only (empty → omitted).
+    ...(socialLinks.length ? { sameAs: socialLinks } : {}),
   },
 }
+
+// Optional per-page structured data (built from env-driven absolute URLs).
+const faqJsonLd = faqItems ? faqSchema(faqItems) : null
+const breadcrumbJsonLd = breadcrumb
+  ? breadcrumbSchema([
+      { name: nav.home, url: new URL(switchLocalePath('/', locale), siteUrl).href },
+      { name: breadcrumb, url: canonical },
+    ])
+  : null
 ---
 
 <!doctype html>
@@ -95,6 +130,9 @@ const siteJsonLd = {
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="robots" content="index, follow" />
+    {googleSiteVerification && (
+      <meta name="google-site-verification" content={googleSiteVerification} />
+    )}
     <meta name="theme-color" content="#faf9f5" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0b2e3a" media="(prefers-color-scheme: dark)" />
 
@@ -115,6 +153,7 @@ const siteJsonLd = {
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content={title} />
     <meta property="og:locale" content={ogLocale[locale]} />
     <meta property="og:locale:alternate" content={ogLocale[locale === 'ro' ? 'en' : 'ro']} />
 
@@ -125,6 +164,12 @@ const siteJsonLd = {
     <meta name="twitter:image" content={ogImage} />
 
     <script type="application/ld+json" is:inline set:html={JSON.stringify(siteJsonLd)} />
+    {faqJsonLd && (
+      <script type="application/ld+json" is:inline set:html={JSON.stringify(faqJsonLd)} />
+    )}
+    {breadcrumbJsonLd && (
+      <script type="application/ld+json" is:inline set:html={JSON.stringify(breadcrumbJsonLd)} />
+    )}
 
     <slot name="head" />
   </head>

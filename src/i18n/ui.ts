@@ -12,7 +12,7 @@ const ro = {
     homeTitle:
       'Angrosist.ro | Sourcing B2B pentru materii prime și produse vrac',
     homeDescription:
-      'Trimite necesarul și primești o ofertă B2B potrivită pentru materii prime, produse vrac, FMCG și aprovizionare recurentă. Oferte în funcție de produs, cantitate și locație de livrare.',
+      'Trimite necesarul și primești o ofertă B2B potrivită pentru materii prime, produse vrac, FMCG și aprovizionare recurentă — în funcție de cantitate și livrare.',
     produseTitle: 'Produse | Catalog B2B orientativ — Angrosist.ro',
     produseDescription:
       'Catalog orientativ de categorii și produse B2B: materii prime, condimente, cereale, oleaginoase, făinuri și FMCG. Comandă rapid pe WhatsApp sau cu asistentul AI.',

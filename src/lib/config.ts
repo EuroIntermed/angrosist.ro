@@ -53,6 +53,25 @@ export const widgetBaseUrl: string = str(
 /** GA4 Measurement ID. Empty string means analytics is OFF (no snippet, no banner). */
 export const gaMeasurementId: string = str('GA_MEASUREMENT_ID', '')
 
+/**
+ * Google Search Console verification token. When set, BaseLayout emits
+ * <meta name="google-site-verification">; when empty the tag is omitted entirely.
+ * The owner pastes the token from the "HTML tag" verification method into the
+ * GOOGLE_SITE_VERIFICATION env var per Vercel project.
+ */
+export const googleSiteVerification: string = str('GOOGLE_SITE_VERIFICATION', '')
+
+/**
+ * Official social profiles for the Organization `sameAs`. Env-driven only — we
+ * never invent profiles (Hard Rule #1 + accuracy). Empty until the owner sets
+ * PUBLIC_SOCIAL_* ; empties are filtered so `sameAs` stays valid.
+ */
+export const socialLinks: string[] = [
+  str('PUBLIC_SOCIAL_LINKEDIN', ''),
+  str('PUBLIC_SOCIAL_FACEBOOK', ''),
+  str('PUBLIC_SOCIAL_INSTAGRAM', ''),
+].filter(Boolean)
+
 /** True only when a GA id is configured — gates the GA snippet + cookie banner. */
 export const analyticsEnabled: boolean = gaMeasurementId.length > 0
 

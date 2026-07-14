@@ -90,7 +90,7 @@ const showSampleNote = !productsUrl
 const sampleRows = groups.flatMap((g) => g.items)
 ---
 
-<BaseLayout locale={locale} title={c.meta.produseTitle} description={c.meta.produseDescription}>
+<BaseLayout locale={locale} title={c.meta.produseTitle} description={c.meta.produseDescription} breadcrumb={c.nav.produse}>
   <Fragment slot="head">
     <script type="application/ld+json" is:inline set:html={JSON.stringify(itemListJsonLd)} />
   </Fragment>

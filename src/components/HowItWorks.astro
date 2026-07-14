@@ -16,7 +16,7 @@ const h = c.how
 const produseHref = localizePath('/produse', locale)
 ---
 
-<BaseLayout locale={locale} title={c.meta.howTitle} description={c.meta.howDescription}>
+<BaseLayout locale={locale} title={c.meta.howTitle} description={c.meta.howDescription} breadcrumb={c.nav.how}>
   <section class="ei-how-hero">
     <div class="ei-container" data-reveal>
       <p class="ei-eyebrow">{h.eyebrow}</p>

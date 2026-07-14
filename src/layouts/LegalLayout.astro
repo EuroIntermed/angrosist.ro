@@ -23,7 +23,7 @@ const legal = t(locale).legal
 const backHref = localizePath('/', locale)
 ---
 
-<BaseLayout locale={locale} title={frontmatter.title} description={frontmatter.description} ogType="article">
+<BaseLayout locale={locale} title={frontmatter.title} description={frontmatter.description} ogType="article" breadcrumb={frontmatter.title}>
   <div class="ei-legal-hero">
     <div class="ei-container">
       <a class="ei-legal__back" href={backHref}>&larr; {legal.backToSite}</a>
