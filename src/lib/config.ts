@@ -13,7 +13,6 @@
  * process.env and must NOT be renamed — they already exist on the Vercel projects.
  *
  * Env vars (set per Vercel project):
- *   WIDGET_ENABLED           "true" (default) embeds the chat widget; "false" removes it.
  *   WIDGET_BASE_URL          origin that serves widget.js (default dash.euro-intermed.com).
  *   GA_MEASUREMENT_ID        GA4 Measurement ID, e.g. "G-XXXXXXX". Empty/unset →
  *                            analytics + cookie banner are stripped entirely.
@@ -39,10 +38,6 @@ function read(key: string): string | undefined {
 function str(key: string, fallback = ''): string {
   return (read(key) ?? fallback).toString().trim()
 }
-
-/** Widget is enabled unless the flag is explicitly "false". */
-export const widgetEnabled: boolean =
-  str('WIDGET_ENABLED', 'true').toLowerCase() !== 'false'
 
 /** Origin that serves widget.js — trailing slashes stripped. */
 export const widgetBaseUrl: string = str(

@@ -1,8 +1,8 @@
 ---
 /**
  * Widget — the Euro-Intermed AI chat widget embed, configured for Angrosist.
- * Origin + visibility come from env (WIDGET_BASE_URL / WIDGET_ENABLED); nothing
- * is hardcoded. When WIDGET_ENABLED=false the component renders nothing.
+ * The widget is always rendered; only its origin (WIDGET_BASE_URL) comes from
+ * env, nothing is hardcoded.
  *
  * The backend API URL is baked into widget.js at build time (frontend's
  * VITE_API_URL) — we deliberately do NOT pass apiUrl here so that single source
@@ -14,14 +14,14 @@
  * message (feature-detected in src/scripts/order.ts).
  */
 import type { Locale } from '../i18n/ui'
-import { widgetEnabled, widgetBaseUrl } from '../lib/config'
+import { widgetBaseUrl } from '../lib/config'
 import { localizePath } from '../i18n/utils'
 const { locale } = Astro.props as { locale: Locale }
 const privacyUrl = localizePath('/confidentialitate', locale)
 ---
 
 {
-  widgetEnabled && (
+  (
     <>
       <script is:inline src={`${widgetBaseUrl}/widget.js`} defer />
       <script
