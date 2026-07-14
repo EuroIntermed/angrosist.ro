@@ -77,8 +77,8 @@ function thumb(p: Product): HTMLElement {
     img.alt = p.produs
     img.loading = 'lazy'
     img.decoding = 'async'
-    img.width = 52
-    img.height = 52
+    img.width = 48
+    img.height = 48
     img.addEventListener('error', () => {
       img.replaceWith(thumbPlaceholder(p.produs))
     })
@@ -116,7 +116,10 @@ function row(p: Product, cfg: CatalogConfig, onOrder: (p: Product) => void): HTM
   tr.appendChild(catCell)
 
   const descCell = td(s.headDesc, 'ag-td ag-td--desc')
-  descCell.textContent = p.descriere
+  const descText = document.createElement('span')
+  descText.className = 'ag-clamp'
+  descText.textContent = p.descriere
+  descCell.appendChild(descText)
   tr.appendChild(descCell)
 
   const unitCell = td(s.headUnit, 'ag-td ag-td--unit')
@@ -131,7 +134,7 @@ function row(p: Product, cfg: CatalogConfig, onOrder: (p: Product) => void): HTM
   const orderCell = td('', 'ag-td ag-td--order')
   const btn = document.createElement('button')
   btn.type = 'button'
-  btn.className = 'ei-btn ei-btn--primary ei-btn--sm ag-row__order'
+  btn.className = 'ag-btn ag-btn--primary ag-row__order'
   btn.textContent = s.orderCta
   btn.addEventListener('click', () => onOrder(p))
   orderCell.appendChild(btn)
@@ -219,7 +222,7 @@ function initCatalog(): void {
     if (withRetry) {
       const b = document.createElement('button')
       b.type = 'button'
-      b.className = 'ei-btn ei-btn--secondary ei-btn--sm'
+      b.className = 'ag-btn ag-btn--secondary'
       b.textContent = cfg.strings.retry
       b.addEventListener('click', () => load())
       statusEl.appendChild(b)

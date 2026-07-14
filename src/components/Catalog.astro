@@ -10,9 +10,14 @@
  * wa.me link; with JS the button becomes the device-aware widget/WhatsApp chooser.
  * SEO: page shell + category names + a JSON-LD ItemList are emitted at build time.
  *
- * Layout: a real <table> styled through the shared design tokens (teal theme),
+ * Layout: a clean data-table styled through the shared design tokens (teal theme),
  * wrapped in an overflow-x container so the page never scrolls sideways; on phones
  * each row collapses into a stacked "label: value" card (CSS, data-label driven).
+ *
+ * STYLING NOTE: this component's <style> is `is:global` on purpose — the runtime
+ * renderer builds rows in plain JS (they carry no Astro scope hash), so the table,
+ * thumbnail and button classes must be global to apply to both SSR and runtime DOM.
+ * All classes are `ag-`-prefixed to avoid collisions.
  */
 import type { Locale } from '../i18n/ui'
 import { t } from '../i18n/utils'
@@ -132,19 +137,19 @@ const sampleRows = groups.flatMap((g) => g.items)
                   <tr class="ag-row" data-category={p.categorie || '—'}>
                     <td class="ag-td ag-td--img" data-label={cat.headImage}>
                       {/^https?:\/\//i.test(p.imagine) ? (
-                        <img class="ag-thumb" src={p.imagine} alt={p.produs} loading="lazy" decoding="async" width="52" height="52" />
+                        <img class="ag-thumb" src={p.imagine} alt={p.produs} loading="lazy" decoding="async" width="48" height="48" />
                       ) : (
                         <div class="ag-thumb ag-thumb--ph" aria-hidden="true"><span>{(p.produs.trim()[0] || '·').toUpperCase()}</span></div>
                       )}
                     </td>
                     <td class="ag-td ag-td--name" data-label={cat.headProduct}><span class="ag-row__name">{p.produs}</span></td>
                     <td class="ag-td ag-td--cat" data-label={cat.headCategory}>{p.categorie || '—'}</td>
-                    <td class="ag-td ag-td--desc" data-label={cat.headDesc}>{p.descriere}</td>
+                    <td class="ag-td ag-td--desc" data-label={cat.headDesc}><span class="ag-clamp">{p.descriere}</span></td>
                     <td class="ag-td ag-td--unit" data-label={cat.headUnit}>{p.unitate || cat.priceEmpty}</td>
                     <td class="ag-td ag-td--price" data-label={cat.headPrice} title={p.pret ? cat.priceLabel : undefined}>{p.pret || cat.priceEmpty}</td>
                     <td class="ag-td ag-td--order">
                       <a
-                        class="ei-btn ei-btn--primary ei-btn--sm ag-row__order"
+                        class="ag-btn ag-btn--primary ag-row__order"
                         href={waLink(orderMessage(p.produs, p.categorie))}
                         target="_blank"
                         rel="noopener"
@@ -174,8 +179,8 @@ const sampleRows = groups.flatMap((g) => g.items)
       <p id="ag-sheet-body" class="ag-sheet__body">{c.order.sheetBody}</p>
       <p class="ag-sheet__product" data-order-product></p>
       <div class="ag-sheet__actions">
-        <button type="button" class="ei-btn ei-btn--whatsapp" data-order-whatsapp>{c.order.whatsapp}</button>
-        <button type="button" class="ei-btn ei-btn--secondary" data-order-widget>{c.order.widget}</button>
+        <button type="button" class="ag-btn ag-btn--whatsapp" data-order-whatsapp>{c.order.whatsapp}</button>
+        <button type="button" class="ag-btn ag-btn--secondary" data-order-widget>{c.order.widget}</button>
       </div>
     </div>
   </div>
@@ -187,7 +192,7 @@ const sampleRows = groups.flatMap((g) => g.items)
   </script>
 </BaseLayout>
 
-<style>
+<style is:global>
   .ag-catalog {
     padding-block: clamp(2.5rem, 2rem + 4vw, 5rem);
   }
@@ -233,6 +238,7 @@ const sampleRows = groups.flatMap((g) => g.items)
     border-radius: var(--ei-radius-pill);
     background: var(--ei-surface);
     color: var(--ei-ink-soft);
+    font-family: inherit;
     font-size: 0.88rem;
     font-weight: 500;
     cursor: pointer;
@@ -278,6 +284,64 @@ const sampleRows = groups.flatMap((g) => g.items)
     color: var(--ei-ink-soft);
   }
 
+  /* ---- Self-contained button system (works for SSR + runtime DOM) ----- */
+  .ag-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    padding: 0.6em 1.2em;
+    border: 1px solid transparent;
+    border-radius: var(--ei-radius-pill);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.2s var(--ei-ease-out), box-shadow 0.25s var(--ei-ease),
+      background-color 0.2s var(--ei-ease), border-color 0.2s var(--ei-ease), color 0.2s var(--ei-ease);
+  }
+  .ag-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--ei-shadow-md);
+  }
+  .ag-btn:active {
+    transform: translateY(0);
+  }
+  .ag-btn--primary {
+    background: var(--ei-accent);
+    color: var(--ei-accent-ink);
+    box-shadow: var(--ei-shadow-sm);
+  }
+  .ag-btn--primary:hover {
+    background: var(--ei-accent-hover);
+    box-shadow: var(--ei-shadow-md);
+  }
+  .ag-btn--secondary {
+    background: transparent;
+    color: var(--ei-accent-text);
+    border-color: var(--ei-hairline-strong);
+  }
+  .ag-btn--secondary:hover {
+    background: var(--ei-accent-soft);
+    border-color: var(--ei-accent);
+    color: var(--ei-accent-strong);
+  }
+  .ag-btn--whatsapp {
+    background: var(--ei-whatsapp);
+    color: var(--ei-whatsapp-ink);
+  }
+  .ag-btn--whatsapp:hover {
+    filter: brightness(0.96);
+  }
+  .ag-row__order {
+    padding: 0.55em 1.15em;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
   /* ---- Table ---------------------------------------------------------- */
   .ag-table-wrap {
     overflow-x: auto;
@@ -294,14 +358,14 @@ const sampleRows = groups.flatMap((g) => g.items)
     width: 100%;
     border-collapse: collapse;
     font-size: 0.94rem;
-    min-width: 720px;
+    min-width: 760px;
   }
   .ag-th {
     text-align: left;
-    padding: 0.9rem 1rem;
+    padding: 0.85rem 1.1rem;
     font-size: 0.7rem;
     font-weight: 700;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--ei-faint);
     background: var(--ei-surface-raised);
@@ -309,7 +373,10 @@ const sampleRows = groups.flatMap((g) => g.items)
     white-space: nowrap;
   }
   .ag-th--img {
-    width: 68px;
+    width: 64px;
+  }
+  .ag-th--desc {
+    width: 38%;
   }
   .ag-th--price {
     text-align: right;
@@ -332,12 +399,13 @@ const sampleRows = groups.flatMap((g) => g.items)
     display: none;
   }
   .ag-td {
-    padding: 0.85rem 1rem;
+    height: 64px;
+    padding: 0.7rem 1.1rem;
     vertical-align: middle;
     color: var(--ei-ink-soft);
   }
   .ag-td--img {
-    width: 68px;
+    width: 64px;
   }
   .ag-row__name {
     font-weight: 600;
@@ -349,7 +417,12 @@ const sampleRows = groups.flatMap((g) => g.items)
   }
   .ag-td--desc {
     color: var(--ei-muted);
-    max-width: 34ch;
+  }
+  .ag-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
     text-wrap: pretty;
   }
   .ag-td--unit {
@@ -368,26 +441,27 @@ const sampleRows = groups.flatMap((g) => g.items)
     white-space: nowrap;
   }
 
-  /* Thumbnail */
+  /* Thumbnail tile */
   .ag-thumb {
-    width: 52px;
-    height: 52px;
-    border-radius: var(--ei-radius-sm);
+    width: 48px;
+    height: 48px;
+    border-radius: var(--ei-radius-md);
     object-fit: cover;
-    border: 1px solid var(--ei-hairline);
-    background: var(--ei-ground-2);
     display: block;
+    border: 1px solid var(--ei-hairline);
+    background: var(--ei-accent-soft);
   }
   .ag-thumb--ph {
     display: grid;
     place-items: center;
-    background: radial-gradient(120% 120% at 30% 20%, var(--ei-accent-soft), transparent 70%), var(--ei-ground-2);
+    border-color: transparent;
+    background: var(--ei-accent-soft);
   }
   .ag-thumb--ph span {
-    font-size: 1.35rem;
+    font-size: 1.15rem;
     font-weight: 700;
+    line-height: 1;
     color: var(--ei-accent-text);
-    opacity: 0.75;
   }
 
   /* ---- Mobile: collapse each row into a stacked label/value card ------ */
@@ -423,7 +497,7 @@ const sampleRows = groups.flatMap((g) => g.items)
     .ag-row {
       position: relative;
       margin-bottom: 1rem;
-      padding: 1rem 1rem 1.1rem;
+      padding: 1rem 1.15rem 1.2rem;
       border: 1px solid var(--ei-hairline);
       border-radius: var(--ei-radius-lg);
       background: var(--ei-surface);
@@ -437,6 +511,7 @@ const sampleRows = groups.flatMap((g) => g.items)
       align-items: baseline;
       justify-content: space-between;
       gap: 1rem;
+      height: auto;
       padding: 0.4rem 0;
       text-align: right;
     }
@@ -450,25 +525,29 @@ const sampleRows = groups.flatMap((g) => g.items)
       color: var(--ei-faint);
       text-align: left;
     }
-    .ag-td--desc,
     .ag-td--cat,
+    .ag-td--desc,
     .ag-td--unit,
     .ag-td--price {
       white-space: normal;
-      max-width: none;
     }
-    /* Image + name form the card header */
+    .ag-clamp {
+      display: block;
+      -webkit-line-clamp: unset;
+    }
+    /* Image tile is the card's leading element */
     .ag-td--img {
       justify-content: flex-start;
       padding-top: 0;
-      padding-bottom: 0.6rem;
+      padding-bottom: 0.7rem;
     }
     .ag-td--img::before {
       display: none;
     }
     .ag-td--name {
       padding-top: 0;
-      padding-bottom: 0.6rem;
+      padding-bottom: 0.7rem;
+      margin-bottom: 0.2rem;
       border-bottom: 1px solid var(--ei-hairline);
     }
     .ag-td--name::before {
@@ -477,12 +556,9 @@ const sampleRows = groups.flatMap((g) => g.items)
     .ag-row__name {
       font-size: 1.05rem;
     }
-    .ag-td--price {
-      text-align: right;
-    }
     .ag-td--order {
       display: block;
-      padding-top: 0.8rem;
+      padding-top: 0.9rem;
       text-align: left;
     }
     .ag-td--order .ag-row__order {
@@ -558,7 +634,7 @@ const sampleRows = groups.flatMap((g) => g.items)
     gap: 0.6rem;
     margin-top: 1.3rem;
   }
-  .ag-sheet__actions :global(.ei-btn) {
+  .ag-sheet__actions .ag-btn {
     width: 100%;
   }
   .ag-sheet__close {
