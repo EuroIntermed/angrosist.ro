@@ -281,6 +281,18 @@ const ro = {
     eyebrow: 'Catalog B2B',
     title: 'Produse orientative, comandă în câteva secunde',
     lead: 'Catalog orientativ de categorii și produse B2B. Prețurile finale se stabilesc pe cerere, în funcție de volum, ambalare și destinație. Apasă „Comandă" și continuă pe WhatsApp sau cu asistentul AI.',
+    // Categories overview (/produse) + per-category pages (/produse/[slug]).
+    overviewEyebrow: 'Catalog B2B',
+    overviewTitle: 'Explorează categoriile de produse',
+    overviewLead: 'Alege o categorie ca să vezi produsele disponibile. Prețurile se stabilesc pe cerere, în funcție de volum, ambalare și destinație — apasă „Comandă" și continuă pe WhatsApp sau cu asistentul AI.',
+    categoriesWord: 'categorii',
+    viewProducts: 'Vezi produsele',
+    backToCategories: 'Toate categoriile',
+    categoryIntro:
+      'Produse din categoria „{category}". Prețurile se stabilesc pe cerere; apasă „Comandă" pentru a continua pe WhatsApp sau cu asistentul AI.',
+    categoryMetaTitle: '{category} | Catalog B2B — Angrosist.ro',
+    categoryMetaDescription:
+      'Produse B2B din categoria {category} ({count} produse orientative). Comandă rapid pe WhatsApp sau cu asistentul AI — preț pe cerere, în funcție de volum și livrare.',
     filterAll: 'Toate',
     filterLabel: 'Filtrează după categorie',
     loading: 'Se încarcă catalogul…',
@@ -664,6 +676,18 @@ const en: typeof ro = {
     eyebrow: 'B2B catalog',
     title: 'Indicative products, order in seconds',
     lead: 'An indicative catalog of B2B categories and products. Final prices are set per request, based on volume, packaging and destination. Tap “Order” and continue on WhatsApp or with the AI assistant.',
+    // Categories overview (/produse) + per-category pages (/produse/[slug]).
+    overviewEyebrow: 'B2B catalog',
+    overviewTitle: 'Browse the product categories',
+    overviewLead: 'Pick a category to see the products available. Prices are set per request, based on volume, packaging and destination — tap “Order” and continue on WhatsApp or with the AI assistant.',
+    categoriesWord: 'categories',
+    viewProducts: 'View products',
+    backToCategories: 'All categories',
+    categoryIntro:
+      'Products in the “{category}” category. Prices are set per request; tap “Order” to continue on WhatsApp or with the AI assistant.',
+    categoryMetaTitle: '{category} | B2B catalog — Angrosist.ro',
+    categoryMetaDescription:
+      'B2B products in the {category} category ({count} indicative products). Order fast on WhatsApp or with the AI assistant — price on request, based on volume and delivery.',
     filterAll: 'All',
     filterLabel: 'Filter by category',
     loading: 'Loading the catalog…',

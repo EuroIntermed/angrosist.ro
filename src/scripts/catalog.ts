@@ -13,6 +13,7 @@
 import {
   parseProducts,
   groupByCategory,
+  normKey,
   sampleProducts,
   type Product,
   type CategoryGroup,
@@ -44,6 +45,12 @@ interface CatalogConfig {
   waNumber: string
   intent: string
   orderTemplate: string
+  /**
+   * Single-category mode: when set (a category display name), the runtime shows
+   * ONLY that category's products and suppresses the category filter chips. Used
+   * by the per-category pages (/produse/[slug]).
+   */
+  category?: string
   strings: CatalogStrings
 }
 
@@ -186,7 +193,8 @@ function initCatalog(): void {
   const fallback = readJson<Product[]>('[data-catalog-fallback]') ?? sampleProducts
 
   const statusEl = root.querySelector<HTMLElement>('[data-catalog-status]')!
-  const filtersEl = root.querySelector<HTMLElement>('[data-catalog-filters]')!
+  // Nullable: the per-category page renders no filter chips (single-category mode).
+  const filtersEl = root.querySelector<HTMLElement>('[data-catalog-filters]')
   const countEl = root.querySelector<HTMLElement>('[data-catalog-count]')!
   const wrapEl = root.querySelector<HTMLElement>('[data-catalog-table-wrap]')!
   const tbodyEl = root.querySelector<HTMLElement>('[data-catalog-tbody]')!
@@ -229,16 +237,28 @@ function initCatalog(): void {
     }
   }
 
+  // Single-category pages pass cfg.category — keep only that category's rows.
+  const limitToCategory = (products: Product[]): Product[] =>
+    cfg.category
+      ? products.filter((p) => normKey(p.categorie) === normKey(cfg.category as string))
+      : products
+
   const render = (groups: CategoryGroup[], sample: boolean) => {
     setStatus('', '')
     noteEl.hidden = !sample
-    renderFilters(filtersEl, groups, cfg.strings.filterAll, (cat) => {
-      tbodyEl.querySelectorAll<HTMLElement>('.ag-row').forEach((tr) => {
-        tr.hidden = cat != null && tr.dataset.category !== cat
-      })
-      updateCount()
-    })
-    filtersEl.hidden = false
+    if (filtersEl) {
+      if (cfg.category) {
+        filtersEl.hidden = true
+      } else {
+        renderFilters(filtersEl, groups, cfg.strings.filterAll, (cat) => {
+          tbodyEl.querySelectorAll<HTMLElement>('.ag-row').forEach((tr) => {
+            tr.hidden = cat != null && tr.dataset.category !== cat
+          })
+          updateCount()
+        })
+        filtersEl.hidden = false
+      }
+    }
     tbodyEl.replaceChildren()
     groups.forEach((g) => g.items.forEach((p) => tbodyEl.appendChild(row(p, cfg, onOrder))))
     wrapEl.hidden = false
@@ -246,14 +266,16 @@ function initCatalog(): void {
     updateCount()
   }
 
-  const showFallback = () => {
-    const groups = groupByCategory(fallback)
-    if (groups.length) render(groups, true)
+  // `sample` controls the demonstrative note. On a category page the embedded
+  // fallback IS real build-time data, so it renders with sample=false.
+  const showFallback = (sample = true) => {
+    const groups = groupByCategory(limitToCategory(fallback))
+    if (groups.length) render(groups, sample)
     else setStatus(cfg.strings.empty, 'empty')
   }
 
   const load = async () => {
-    filtersEl.hidden = true
+    if (filtersEl) filtersEl.hidden = true
     countEl.hidden = true
     wrapEl.hidden = true
     noteEl.hidden = true
@@ -272,13 +294,19 @@ function initCatalog(): void {
       })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const text = await res.text()
-      const groups = groupByCategory(parseProducts(text))
+      const groups = groupByCategory(limitToCategory(parseProducts(text)))
       if (!groups.length) {
+        // Empty live result: on a category page fall back to the build-time rows
+        // rather than blanking the page; on the full catalog show the empty state.
+        if (cfg.category) return showFallback(false)
         setStatus(cfg.strings.empty, 'empty')
         return
       }
       render(groups, false)
     } catch {
+      // Category pages restore their build-time rows; the full catalog (no live
+      // rows pre-rendered) surfaces a retryable error.
+      if (cfg.category) return showFallback(false)
       setStatus(cfg.strings.error, 'error', true)
     }
   }

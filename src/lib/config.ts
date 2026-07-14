@@ -101,7 +101,19 @@ export const calendlyUrl: string = str('PUBLIC_CALENDLY_URL', 'https://calendly.
 // Override per-env with PUBLIC_PRODUCTS_URL in Vercel if the sheet changes.
 export const productsUrl: string = str(
   'PUBLIC_PRODUCTS_URL',
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vR4xsVxbllr4z0kETbwDtpkzP9_c8EfcTqxocvVtewFHK8xBcAAXPMl79oYxO3jdpOOXh0A-iG8VoWL/pub?output=csv',
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vSNRK_6EKPhr06TWGN0dvmen9MbF2NUk5Mchxl_n8QRCicdF2dDMZNMPpMa8W3MD96TGUlIxx1TwV6H/pub?output=csv',
+)
+
+/**
+ * The category showcase data source — a published Google Sheet (CSV) with one
+ * row per category: `categorie,slug,nr_produse,imagine_categorie,sursa`. Drives
+ * the /produse overview tiles and the per-category routes. Empty → the site
+ * falls back to the bundled category list (src/lib/categories.ts). Env-overridable
+ * with PUBLIC_CATEGORIES_URL per Vercel project (Hard Rule #1).
+ */
+export const categoriesUrl: string = str(
+  'PUBLIC_CATEGORIES_URL',
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQZdqNMJGUdsOyFc3sJkBlQuE2yJMhS4tTez-hFMtJZg951UWVWhT2qtE-Z1gE7wb28jFmKEH6Nubp1/pub?output=csv',
 )
 
 /**

@@ -1,5 +1,8 @@
 ---
-import Catalog from '../components/Catalog.astro'
+import CategoryGrid from '../components/CategoryGrid.astro'
+import { loadCatalog } from '../lib/catalog-data'
+
+const categories = await loadCatalog()
 ---
 
-<Catalog locale="ro" />
+<CategoryGrid locale="ro" categories={categories} />

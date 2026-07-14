@@ -1,0 +1,16 @@
+---
+import CategoryProducts from '../../components/CategoryProducts.astro'
+import { loadCatalog, type CategoryWithProducts } from '../../lib/catalog-data'
+
+export async function getStaticPaths() {
+  const categories = await loadCatalog()
+  return categories.map((category) => ({
+    params: { slug: category.slug },
+    props: { category },
+  }))
+}
+
+const { category } = Astro.props as { category: CategoryWithProducts }
+---
+
+<CategoryProducts locale="ro" category={category} />

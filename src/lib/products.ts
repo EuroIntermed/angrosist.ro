@@ -52,7 +52,7 @@ const COLUMN_ALIASES: Record<keyof Product, string[]> = {
 }
 
 /** Strip diacritics + lowercase + drop non-alphanumerics for tolerant matching. */
-function normKey(s: string): string {
+export function normKey(s: string): string {
   return s
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -91,7 +91,7 @@ export function driveImage(url: string): string {
 }
 
 /** Minimal RFC-4180-ish CSV parser (handles quotes, escaped quotes, CRLF). */
-function parseCsv(text: string): string[][] {
+export function parseCsv(text: string): string[][] {
   const rows: string[][] = []
   let row: string[] = []
   let field = ''
