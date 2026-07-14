@@ -83,7 +83,12 @@ export const calendlyUrl: string = str('PUBLIC_CALENDLY_URL', 'https://calendly.
  * until the owner sets PUBLIC_PRODUCTS_URL the catalog renders the bundled sample
  * fallback (see src/lib/products.ts). Never hardcode the real URL here.
  */
-export const productsUrl: string = str('PUBLIC_PRODUCTS_URL', '')
+// Default = the owner's published-to-web Google Sheet (public CSV, CORS-enabled).
+// Override per-env with PUBLIC_PRODUCTS_URL in Vercel if the sheet changes.
+export const productsUrl: string = str(
+  'PUBLIC_PRODUCTS_URL',
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vR4xsVxbllr4z0kETbwDtpkzP9_c8EfcTqxocvVtewFHK8xBcAAXPMl79oYxO3jdpOOXh0A-iG8VoWL/pub?output=csv',
+)
 
 /**
  * Ecosystem deep-links — external URLs, env-overridable (Hard Rule #1). Angrosist
