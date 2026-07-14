@@ -20,6 +20,7 @@ import '../styles/global.css'
 import type { Locale } from '../i18n/ui'
 import { t, switchLocalePath, htmlLang, ogLocale } from '../i18n/utils'
 import { siteUrl, analyticsEnabled, contactEmail, contactPhone, verticalUrls } from '../lib/config'
+import { ogSlug } from '../lib/og'
 import Nav from './Nav.astro'
 import Footer from './Footer.astro'
 import Analytics from './Analytics.astro'
@@ -42,7 +43,9 @@ const path = Astro.url.pathname
 const canonical = new URL(path, siteUrl).href
 const roUrl = new URL(switchLocalePath(path, 'ro'), siteUrl).href
 const enUrl = new URL(switchLocalePath(path, 'en'), siteUrl).href
-const ogImage = new URL('/favicon.svg', siteUrl).href
+// Branded 1200x630 social card generated at build (see src/pages/og + src/lib/og).
+// Absolute URL from the env-driven siteUrl — no hardcoded host (Hard Rule #1).
+const ogImage = new URL(`/og/${ogSlug(path, locale)}.png`, siteUrl).href
 
 // JSON-LD: Angrosist WebSite, published by the Euro-Intermed operating company.
 const siteJsonLd = {
@@ -109,6 +112,9 @@ const siteJsonLd = {
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:locale" content={ogLocale[locale]} />
     <meta property="og:locale:alternate" content={ogLocale[locale === 'ro' ? 'en' : 'ro']} />
 

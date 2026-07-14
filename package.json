@@ -19,7 +19,8 @@
     "@astrojs/mdx": "^4.2.6",
     "@astrojs/sitemap": "^3.4.0",
     "@fontsource-variable/dm-sans": "^5.2.5",
-    "astro": "^5.9.0"
+    "astro": "^5.9.0",
+    "astro-og-canvas": "^0.13.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
