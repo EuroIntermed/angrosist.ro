@@ -160,9 +160,10 @@ export interface OrderRequest {
 }
 
 /**
- * Decide + act. Desktop opens the widget (WhatsApp fallback); mobile shows the
- * chooser sheet. `sheet` may be null (no sheet in the DOM) — then mobile falls
- * straight through to the widget-or-WhatsApp desktop behaviour.
+ * Ask, then act. ALWAYS presents the chooser sheet (WhatsApp vs. in-page chat)
+ * on every device so the user decides how to start the conversation — the
+ * message is pre-filled either way. `sheet` may be null (no sheet in the DOM);
+ * then we fall straight through to widget-or-WhatsApp.
  */
 export function placeOrder(req: OrderRequest, sheet: OrderSheet | null): void {
   const { message, waNumber, intent, productName } = req
@@ -171,7 +172,7 @@ export function placeOrder(req: OrderRequest, sheet: OrderSheet | null): void {
     if (!openInWidget(message, intent)) goToWhatsApp(waNumber, message)
   }
 
-  if (isMobileDevice() && sheet) {
+  if (sheet) {
     sheet.open({
       productName,
       onWhatsApp: () => goToWhatsApp(waNumber, message),

@@ -288,6 +288,15 @@ const ro = {
     categoriesWord: 'categorii',
     viewProducts: 'Vezi produsele',
     backToCategories: 'Toate categoriile',
+    // Search + multi-select toolbar on a category page.
+    searchPlaceholder: 'Caută în categorie…',
+    searchEmpty: 'Niciun produs pentru „{q}".',
+    headSelect: 'Selectează',
+    selectAll: 'Selectează tot',
+    selectedCount: '{n} selectate',
+    orderSelected: 'Comandă selectate',
+    clearSelection: 'Renunță',
+    selectHint: 'Bifează produsele și trimite o singură cerere pentru toate.',
     categoryIntro:
       'Produse din categoria „{category}". Prețurile se stabilesc pe cerere; apasă „Comandă" pentru a continua pe WhatsApp sau cu asistentul AI.',
     categoryMetaTitle: '{category} | Catalog B2B — Angrosist.ro',
@@ -322,9 +331,15 @@ const ro = {
     whatsapp: 'Continuă pe WhatsApp',
     widget: 'Continuă în chat',
     close: 'Închide',
-    // {product} / {category} placeholders are replaced at runtime.
+    // {product} / {category} / {unit} / {details} placeholders filled at runtime.
     message:
-      'Buna ziua. Vreau sa comand prin Angrosist. Produs: {product} · Categorie: {category} · Cantitate: ___ · Livrare: ___ · Sursa: catalog online',
+      'Bună ziua! Vreau să comand prin Angrosist.\nProdus: {product}\nCategorie: {category}\nAmbalaj: {unit}\nDetalii: {details}\nCantitate: ___\nLivrare: ___\nSursă: catalog online',
+    // Multiple products: an intro line, one numbered {product}/{unit}/{details}
+    // line per item, then an outro.
+    messageMultiIntro:
+      'Bună ziua! Vreau să comand prin Angrosist următoarele produse din categoria {category}:',
+    messageMultiItem: '{n}. {product} — Ambalaj: {unit} — Detalii: {details}',
+    messageMultiOutro: 'Cantitate per produs: ___\nLivrare: ___\nSursă: catalog online',
   },
   how: {
     eyebrow: 'Cum funcționează',
@@ -683,6 +698,15 @@ const en: typeof ro = {
     categoriesWord: 'categories',
     viewProducts: 'View products',
     backToCategories: 'All categories',
+    // Search + multi-select toolbar on a category page.
+    searchPlaceholder: 'Search in category…',
+    searchEmpty: 'No products for “{q}”.',
+    headSelect: 'Select',
+    selectAll: 'Select all',
+    selectedCount: '{n} selected',
+    orderSelected: 'Order selected',
+    clearSelection: 'Clear',
+    selectHint: 'Tick products and send a single request for all of them.',
     categoryIntro:
       'Products in the “{category}” category. Prices are set per request; tap “Order” to continue on WhatsApp or with the AI assistant.',
     categoryMetaTitle: '{category} | B2B catalog — Angrosist.ro',
@@ -716,8 +740,13 @@ const en: typeof ro = {
     whatsapp: 'Continue on WhatsApp',
     widget: 'Continue in chat',
     close: 'Close',
+    // {product} / {category} / {unit} / {details} placeholders filled at runtime.
     message:
-      'Hello. I want to order via Angrosist. Product: {product} · Category: {category} · Quantity: ___ · Delivery: ___ · Source: online catalog',
+      'Hello! I want to order via Angrosist.\nProduct: {product}\nCategory: {category}\nPackaging: {unit}\nDetails: {details}\nQuantity: ___\nDelivery: ___\nSource: online catalog',
+    messageMultiIntro:
+      'Hello! I want to order the following products via Angrosist, from the {category} category:',
+    messageMultiItem: '{n}. {product} — Packaging: {unit} — Details: {details}',
+    messageMultiOutro: 'Quantity per product: ___\nDelivery: ___\nSource: online catalog',
   },
   how: {
     eyebrow: 'How it works',

@@ -484,4 +484,142 @@
       flex-direction: row;
     }
   }
+
+  /* ---- Search box + select hint -------------------------------------- */
+  .ag-catalog__toolbar--search {
+    align-items: center;
+  }
+  .ag-search {
+    position: relative;
+    flex: 1 1 260px;
+    max-width: 440px;
+  }
+  .ag-search__icon {
+    position: absolute;
+    left: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ei-faint);
+    pointer-events: none;
+  }
+  .ag-search__input {
+    width: 100%;
+    padding: 0.6rem 0.9rem 0.6rem 2.6rem;
+    font: inherit;
+    font-size: 0.92rem;
+    color: var(--ei-ink);
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline-strong);
+    border-radius: var(--ei-radius-pill);
+    transition: border-color 0.2s var(--ei-ease), box-shadow 0.2s var(--ei-ease);
+  }
+  .ag-search__input::placeholder {
+    color: var(--ei-faint);
+  }
+  .ag-search__input:focus-visible {
+    outline: none;
+    border-color: var(--ei-accent);
+    box-shadow: 0 0 0 3px var(--ei-accent-soft);
+  }
+  .ag-catalog__hint {
+    margin: 0 0 1.1rem;
+    color: var(--ei-faint);
+    font-size: 0.82rem;
+  }
+
+  /* ---- Select checkbox column ---------------------------------------- */
+  .ag-th--check,
+  .ag-td--check {
+    width: 44px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .ag-check {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--ei-accent);
+    cursor: pointer;
+    vertical-align: middle;
+  }
+  .ag-row:has(.ag-check:checked) {
+    background: var(--ei-accent-soft);
+  }
+
+  /* ---- Selection action bar (sticky bottom) -------------------------- */
+  .ag-selbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2147482000;
+    padding: 0.8rem 0;
+    background: var(--ei-surface-contrast);
+    border-top: 1px solid var(--ei-hairline-strong);
+    box-shadow: var(--ei-shadow-lg);
+    animation: ag-selbar-in 0.24s var(--ei-ease-out);
+  }
+  .ag-selbar[hidden] {
+    display: none;
+  }
+  @keyframes ag-selbar-in {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .ag-selbar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .ag-selbar__count {
+    color: var(--ei-on-contrast);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .ag-selbar__actions {
+    display: flex;
+    gap: 0.6rem;
+    flex: 0 0 auto;
+  }
+  .ag-selbar__actions .ag-btn--secondary {
+    color: var(--ei-on-contrast);
+    border-color: rgba(255, 255, 255, 0.28);
+    background: transparent;
+  }
+  .ag-selbar__actions .ag-btn--secondary:hover {
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--ei-on-contrast);
+  }
+
+  /* Mobile: float the checkbox into the card's top-right corner. */
+  @media (max-width: 720px) {
+    .ag-row {
+      padding-right: 3.1rem;
+    }
+    .ag-td--check {
+      position: absolute;
+      top: 0.9rem;
+      right: 0.9rem;
+      width: auto;
+      padding: 0;
+    }
+    .ag-td--check::before {
+      display: none;
+    }
+    .ag-selbar {
+      padding: 0.7rem 0;
+    }
+    .ag-selbar__inner {
+      justify-content: center;
+    }
+    .ag-selbar__actions {
+      flex: 1 1 auto;
+    }
+    .ag-selbar__actions .ag-btn {
+      flex: 1;
+    }
+  }
 </style>
