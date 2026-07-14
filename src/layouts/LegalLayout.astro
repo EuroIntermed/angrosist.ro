@@ -1,0 +1,124 @@
+---
+/**
+ * LegalLayout — reading layout for the MDX legal pages (terms / privacy / GDPR).
+ * MDX frontmatter supplies { title, description, locale, updated, eyebrow,
+ * placeholder }. The MDX body renders into a clean, measured prose column.
+ */
+import BaseLayout from '../components/BaseLayout.astro'
+import { t, localizePath } from '../i18n/utils'
+import type { Locale } from '../i18n/ui'
+
+const { frontmatter } = Astro.props as {
+  frontmatter: {
+    title: string
+    description: string
+    locale: Locale
+    updated?: string
+    eyebrow?: string
+    placeholder?: boolean
+  }
+}
+const locale = frontmatter.locale
+const legal = t(locale).legal
+const backHref = localizePath('/', locale)
+---
+
+<BaseLayout locale={locale} title={frontmatter.title} description={frontmatter.description} ogType="article">
+  <div class="ei-legal-hero">
+    <div class="ei-container">
+      <a class="ei-legal__back" href={backHref}>&larr; {legal.backToSite}</a>
+      {frontmatter.eyebrow && <p class="ei-eyebrow">{frontmatter.eyebrow}</p>}
+      <h1>{frontmatter.title}</h1>
+      {frontmatter.updated && (
+        <p class="ei-legal__updated">{legal.updated}: {frontmatter.updated}</p>
+      )}
+    </div>
+  </div>
+
+  <div class="ei-container">
+    <article class="ei-legal-body">
+      {frontmatter.placeholder && (
+        <p class="ei-legal__placeholder" role="note">
+          {locale === 'ro'
+            ? 'Text provizoriu. Conținutul final va fi furnizat și revizuit de client înainte de lansarea publică.'
+            : 'Placeholder text. The final content will be provided and reviewed by the client before public launch.'}
+        </p>
+      )}
+      <slot />
+    </article>
+  </div>
+</BaseLayout>
+
+<style>
+  .ei-legal-hero {
+    padding-block: clamp(2.5rem, 2rem + 3vw, 4.5rem) 1.5rem;
+    background: var(--ei-surface-raised);
+    border-bottom: 1px solid var(--ei-hairline);
+  }
+  .ei-legal__back {
+    display: inline-block;
+    margin-bottom: 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ei-muted);
+    transition: color 0.2s var(--ei-ease);
+  }
+  .ei-legal__back:hover {
+    color: var(--ei-accent-strong);
+  }
+  .ei-legal__updated {
+    margin-top: 0.8rem;
+    color: var(--ei-faint);
+    font-size: 0.9rem;
+  }
+
+  .ei-legal-body {
+    max-width: 68ch;
+    margin-inline: auto;
+    padding-block: clamp(2.5rem, 2rem + 3vw, 4rem);
+  }
+  .ei-legal__placeholder {
+    padding: 1rem 1.2rem;
+    margin-bottom: 2rem;
+    border: 1px dashed var(--ei-gold-strong);
+    border-radius: var(--ei-radius-md);
+    background: var(--ei-gold-soft);
+    color: var(--ei-ink-soft);
+    font-size: 0.92rem;
+  }
+  .ei-legal-body :global(h2) {
+    font-size: 1.35rem;
+    margin-top: 2.4rem;
+    margin-bottom: 0.7rem;
+  }
+  .ei-legal-body :global(h2:first-of-type) {
+    margin-top: 0;
+  }
+  .ei-legal-body :global(h3) {
+    font-size: 1.1rem;
+    margin-top: 1.6rem;
+    margin-bottom: 0.5rem;
+  }
+  .ei-legal-body :global(p),
+  .ei-legal-body :global(li) {
+    color: var(--ei-ink-soft);
+  }
+  .ei-legal-body :global(p) {
+    margin-bottom: 1rem;
+  }
+  .ei-legal-body :global(ul) {
+    margin: 0 0 1.2rem;
+    padding-left: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .ei-legal-body :global(a) {
+    color: var(--ei-accent-strong);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .ei-legal-body :global(strong) {
+    color: var(--ei-ink);
+  }
+</style>

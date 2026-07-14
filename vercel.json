@@ -1,8 +1,19 @@
 {
-  "buildCommand": "node build.mjs",
+  "framework": "astro",
+  "buildCommand": "astro build",
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/privacy", "destination": "/confidentialitate", "permanent": true },
+    { "source": "/privacy.html", "destination": "/confidentialitate", "permanent": true },
+    { "source": "/terms", "destination": "/termeni", "permanent": true },
+    { "source": "/terms.html", "destination": "/termeni", "permanent": true },
+    { "source": "/tos", "destination": "/termeni", "permanent": true },
+    { "source": "/data-deletion", "destination": "/gdpr", "permanent": true },
+    { "source": "/products", "destination": "/produse", "permanent": true },
+    { "source": "/catalog", "destination": "/produse", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/(.*)",

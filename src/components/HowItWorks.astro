@@ -1,0 +1,200 @@
+---
+/**
+ * HowItWorks — the "Cum funcționează" page. Four numbered steps, a "what to
+ * include" checklist, and a final WhatsApp CTA. All copy from the i18n dictionary.
+ */
+import type { Locale } from '../i18n/ui'
+import { t, localizePath } from '../i18n/utils'
+import { waLink } from '../lib/config'
+import BaseLayout from './BaseLayout.astro'
+import Section from './Section.astro'
+import Button from './Button.astro'
+
+const { locale } = Astro.props as { locale: Locale }
+const c = t(locale)
+const h = c.how
+const produseHref = localizePath('/produse', locale)
+---
+
+<BaseLayout locale={locale} title={c.meta.howTitle} description={c.meta.howDescription}>
+  <section class="ei-how-hero">
+    <div class="ei-container" data-reveal>
+      <p class="ei-eyebrow">{h.eyebrow}</p>
+      <h1>{h.title}</h1>
+      <p class="ei-lead">{h.lead}</p>
+    </div>
+  </section>
+
+  <Section tone="raised" labelledby="how-steps-title">
+    <h2 id="how-steps-title" class="ei-sr-only">{h.eyebrow}</h2>
+    <ol class="ei-how-steps">
+      {
+        h.steps.map((step, i) => (
+          <li class="ei-how-step" data-reveal style={`--i:${i}`}>
+            <span class="ei-how-step__n" aria-hidden="true">{i + 1}</span>
+            <div>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </Section>
+
+  <Section labelledby="how-check-title">
+    <div class="ei-how-check">
+      <div class="ei-how-check__head" data-reveal>
+        <p class="ei-eyebrow">{h.checklist.eyebrow}</p>
+        <h2 id="how-check-title">{h.checklist.title}</h2>
+      </div>
+      <ul class="ei-how-check__grid" data-reveal>
+        {
+          h.checklist.items.map((item) => (
+            <li>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              <span>{item}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </Section>
+
+  <Section tone="contrast" labelledby="how-cta-title">
+    <div class="ei-cta" data-reveal>
+      <h2 id="how-cta-title">{h.cta.title}</h2>
+      <p class="ei-lead">{h.cta.copy}</p>
+      <div class="ei-cta__actions">
+        <Button href={waLink(c.hero.whatsappText)} variant="whatsapp" target="_blank" rel="noopener" data-ga-vertical="whatsapp">
+          {h.cta.primary}
+        </Button>
+        <Button href={produseHref} variant="secondary">{h.cta.secondary}</Button>
+      </div>
+    </div>
+  </Section>
+</BaseLayout>
+
+<style>
+  .ei-how-hero {
+    padding-block: clamp(2.5rem, 2rem + 4vw, 5rem) clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  }
+  .ei-how-hero h1 {
+    margin-top: 0.7rem;
+  }
+  .ei-how-hero .ei-lead {
+    margin-top: 1rem;
+  }
+
+  .ei-how-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+  .ei-how-step {
+    display: flex;
+    gap: 1rem;
+    padding: 1.6rem 1.5rem;
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-md);
+  }
+  .ei-how-step__n {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--ei-accent-soft);
+    color: var(--ei-accent-text);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .ei-how-step h3 {
+    font-size: 1.12rem;
+    margin-bottom: 0.35rem;
+  }
+  .ei-how-step p {
+    color: var(--ei-muted);
+    font-size: 0.94rem;
+  }
+
+  .ei-how-check {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: clamp(1.5rem, 1rem + 3vw, 3rem);
+    align-items: start;
+  }
+  .ei-how-check__head h2 {
+    margin-top: 0.7rem;
+  }
+  .ei-how-check__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  .ei-how-check__grid li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-sm);
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--ei-ink-soft);
+  }
+  .ei-how-check__grid svg {
+    flex: 0 0 auto;
+    color: var(--ei-accent);
+  }
+
+  .ei-cta {
+    max-width: 60ch;
+    margin-inline: auto;
+    text-align: center;
+  }
+  .ei-cta .ei-lead {
+    margin: 1rem auto 0;
+  }
+  .ei-cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+  .ei-cta__actions :global(.ei-btn--secondary) {
+    --_fg: var(--ei-on-contrast);
+    --_bd: rgba(255, 255, 255, 0.35);
+  }
+  .ei-cta__actions :global(.ei-btn--secondary:hover) {
+    --_bg: rgba(255, 255, 255, 0.1);
+    --_bd: var(--ei-on-contrast);
+    --_fg: var(--ei-on-contrast);
+  }
+
+  @media (max-width: 780px) {
+    .ei-how-steps {
+      grid-template-columns: 1fr;
+    }
+    .ei-how-check {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 480px) {
+    .ei-how-check__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,28 @@
+{
+  "name": "www-angrosist",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Angrosist.ro marketing site — Astro + TypeScript, RO/EN, B2B sourcing vertical of the Euro-Intermed ecosystem.",
+  "engines": {
+    "node": ">=18.20"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.2.6",
+    "@astrojs/sitemap": "^3.4.0",
+    "@fontsource-variable/dm-sans": "^5.2.5",
+    "astro": "^5.9.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "typescript": "^5.8.3"
+  }
+}

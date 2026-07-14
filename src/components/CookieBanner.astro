@@ -1,0 +1,109 @@
+---
+/**
+ * CookieBanner — Consent Mode v2 grant/deny opt-in. Rendered ONLY when a GA id
+ * is configured (gated by the caller). Persists the choice in localStorage under
+ * `ei-analytics-consent` and flips gtag consent to 'granted' on accept — the
+ * same contract as the old build.mjs banner, restyled through design tokens and
+ * theme-aware.
+ */
+import type { Locale } from '../i18n/ui'
+import { t } from '../i18n/utils'
+const { locale } = Astro.props as { locale: Locale }
+const c = t(locale).cookie
+---
+
+<div class="ei-cookie" id="ei-consent-banner" role="dialog" aria-live="polite" aria-label={c.label} hidden>
+  <p class="ei-cookie__msg">{c.message}</p>
+  <div class="ei-cookie__actions">
+    <button type="button" class="ei-cookie__btn ei-cookie__btn--ghost" data-consent="denied">{c.reject}</button>
+    <button type="button" class="ei-cookie__btn ei-cookie__btn--accept" data-consent="granted">{c.accept}</button>
+  </div>
+</div>
+
+<style>
+  .ei-cookie {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 2147483000;
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    background: var(--ei-surface-contrast);
+    color: var(--ei-on-contrast);
+    border: 1px solid var(--ei-hairline-strong);
+    border-radius: var(--ei-radius-md);
+    box-shadow: var(--ei-shadow-lg);
+    font-size: 0.9rem;
+  }
+  .ei-cookie[hidden] {
+    display: none;
+  }
+  .ei-cookie__msg {
+    flex: 1 1 260px;
+    min-width: 220px;
+    margin: 0;
+    color: var(--ei-on-contrast-muted);
+  }
+  .ei-cookie__actions {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+  .ei-cookie__btn {
+    cursor: pointer;
+    border-radius: var(--ei-radius-sm);
+    padding: 8px 16px;
+    font: inherit;
+    font-weight: 600;
+  }
+  .ei-cookie__btn--ghost {
+    border: 1px solid rgba(232, 240, 234, 0.4);
+    background: transparent;
+    color: var(--ei-on-contrast);
+  }
+  .ei-cookie__btn--accept {
+    border: none;
+    background: var(--ei-gold);
+    color: #10231a;
+  }
+  .ei-cookie__btn--accept:hover {
+    background: var(--ei-gold-strong);
+  }
+</style>
+
+<script>
+  const KEY = 'ei-analytics-consent'
+  const banner = document.getElementById('ei-consent-banner')
+  if (banner) {
+    let choice: string | null = null
+    try {
+      choice = localStorage.getItem(KEY)
+    } catch {
+      /* storage blocked — show banner */
+    }
+    if (choice !== 'granted' && choice !== 'denied') {
+      banner.hidden = false
+    }
+    banner.querySelectorAll('[data-consent]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const value = btn.getAttribute('data-consent')
+        try {
+          localStorage.setItem(KEY, value || 'denied')
+        } catch {
+          /* ignore */
+        }
+        if (value === 'granted' && typeof (window as any).gtag === 'function') {
+          ;(window as any).gtag('consent', 'update', { analytics_storage: 'granted' })
+        }
+        banner.hidden = true
+      })
+    })
+  }
+</script>

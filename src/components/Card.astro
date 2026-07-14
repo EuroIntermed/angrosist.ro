@@ -1,0 +1,149 @@
+---
+/**
+ * Card — flexible surface card. Used for value props, audience tiles and the
+ * three vertical pillars. When `href` is set the whole card becomes a link and
+ * carries any pass-through attributes (e.g. data-ga-vertical) for GA wiring.
+ */
+interface Props {
+  href?: string
+  variant?: 'default' | 'pillar' | 'numbered'
+  index?: number
+  eyebrow?: string
+  badge?: string
+  roadmap?: boolean
+  number?: string
+  title?: string
+  reveal?: boolean
+  class?: string
+  [key: string]: unknown
+}
+const {
+  href,
+  variant = 'default',
+  index,
+  eyebrow,
+  badge,
+  roadmap = false,
+  number,
+  title,
+  reveal = true,
+  class: className = '',
+  ...rest
+} = Astro.props
+const Tag = href ? 'a' : 'article'
+const revealAttrs = reveal ? { 'data-reveal': true } : {}
+const style = index != null ? `--i:${index}` : undefined
+---
+
+<Tag
+  class={`ei-card ei-card--${variant} ${roadmap ? 'ei-card--roadmap' : ''} ${className}`.trim()}
+  href={href}
+  style={style}
+  {...revealAttrs}
+  {...rest}
+>
+  {number && <span class="ei-card__num" aria-hidden="true">{number}</span>}
+  {badge && (
+    <span class={`ei-card__badge ${roadmap ? 'ei-card__badge--roadmap' : ''}`}>{badge}</span>
+  )}
+  {eyebrow && <p class="ei-eyebrow ei-card__eyebrow">{eyebrow}</p>}
+  {title && <h3 class="ei-card__title">{title}</h3>}
+  <slot />
+</Tag>
+
+<style>
+  .ei-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: clamp(1.4rem, 1.1rem + 1vw, 2rem);
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-lg);
+    box-shadow: var(--ei-shadow-sm);
+    /* A card is always a LIGHT surface — pin its text to the dark ink so it never
+       inherits a dark band's light on-contrast color (which ghosts on white). */
+    color: var(--ei-ink);
+    transition:
+      transform 0.3s var(--ei-ease-out),
+      box-shadow 0.3s var(--ei-ease),
+      border-color 0.3s var(--ei-ease);
+  }
+  a.ei-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--ei-shadow-lg);
+    border-color: var(--ei-accent);
+  }
+
+  .ei-card__num {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--ei-gold-text);
+    font-variant-numeric: tabular-nums;
+  }
+  .ei-card__title {
+    font-size: 1.2rem;
+    color: var(--ei-ink);
+  }
+  .ei-card :global(p) {
+    color: var(--ei-muted);
+    text-wrap: pretty;
+  }
+  .ei-card :global(.ei-card__note) {
+    font-size: 0.9rem;
+    color: var(--ei-faint);
+    padding-top: 0.2rem;
+    border-top: 1px dashed var(--ei-hairline);
+    margin-top: 0.3rem;
+  }
+
+  /* Pillar cards — the three verticals. Gold top rail + accent-tinted surface. */
+  .ei-card--pillar {
+    background: linear-gradient(180deg, var(--ei-surface), var(--ei-surface));
+    padding-top: 1.9rem;
+    gap: 0.85rem;
+    /* Clip the gradient top-rail (::before) to the card's rounded corners so its
+       ends never poke past the radius. */
+    overflow: hidden;
+  }
+  .ei-card--pillar::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--ei-accent), var(--ei-gold));
+  }
+  .ei-card--pillar .ei-card__title {
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
+  }
+  .ei-card--roadmap::before {
+    background: linear-gradient(90deg, var(--ei-gold), var(--ei-gold-strong));
+    opacity: 0.75;
+  }
+
+  .ei-card__badge {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3em 0.8em;
+    border-radius: var(--ei-radius-pill);
+    background: var(--ei-accent-soft);
+    color: var(--ei-accent-strong);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .ei-card__badge--roadmap {
+    background: var(--ei-gold-soft);
+    color: var(--ei-gold-text);
+  }
+
+  .ei-card__pillar-actions {
+    margin-top: auto;
+    padding-top: 0.4rem;
+  }
+</style>

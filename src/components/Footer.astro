@@ -1,0 +1,178 @@
+---
+/**
+ * Footer — brand, explore links, ecosystem cross-links (hub + siblings, with
+ * data-ga-vertical for the shared `vertical_redirect` GA event), legal links and
+ * contact. Themed for Angrosist via the shared token layer.
+ */
+import type { Locale } from '../i18n/ui'
+import { t, localizePath } from '../i18n/utils'
+import { verticalUrls, contactEmail, contactPhone, waLink } from '../lib/config'
+
+const { locale } = Astro.props as { locale: Locale }
+const c = t(locale)
+const f = c.footer
+const lp = (p: string) => localizePath(p, locale)
+---
+
+<footer class="ei-footer">
+  <div class="ei-container ei-footer__grid">
+    <div class="ei-footer__brand">
+      <a class="ei-brand" href={localizePath('/', locale)} aria-label={c.brand.name}>
+        <span class="ei-brand__mark" aria-hidden="true">{c.brand.mark}</span>
+        <span class="ei-brand__text">
+          <span>{c.brand.name}</span>
+          <small>{c.brand.tagline}</small>
+        </span>
+      </a>
+      <p class="ei-footer__tag">{f.tagline}</p>
+    </div>
+
+    <div class="ei-footer__col">
+      <h2>{f.explore}</h2>
+      <a href={lp('/produse')}>{f.linkProduse}</a>
+      <a href={lp('/cum-functioneaza')}>{f.linkHow}</a>
+      <a href={lp('/contact')}>{f.linkContact}</a>
+    </div>
+
+    <div class="ei-footer__col">
+      <h2>{f.ecosystem}</h2>
+      <a href={verticalUrls.hub} data-ga-vertical="euro-intermed" target="_blank" rel="noopener">Euro Intermed</a>
+      <a href={verticalUrls.palletclearance} data-ga-vertical="clearance" target="_blank" rel="noopener">PalletClearance</a>
+      <a href={verticalUrls.skalyou} data-ga-vertical="skalyou" target="_blank" rel="noopener">SkalYou</a>
+    </div>
+
+    <div class="ei-footer__col">
+      <h2>{f.contact}</h2>
+      <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+      <a href={`tel:${contactPhone}`}>{contactPhone}</a>
+      <a href={waLink()} target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+
+  <div class="ei-container ei-footer__legal-row">
+    <a href={lp('/confidentialitate')}>{f.privacy}</a>
+    <a href={lp('/termeni')}>{f.terms}</a>
+    <a href={lp('/gdpr')}>{f.gdpr}</a>
+  </div>
+
+  <div class="ei-container ei-footer__bottom">
+    <span>{f.rights}</span>
+    <span>{f.reg}</span>
+  </div>
+</footer>
+
+<style>
+  .ei-footer {
+    background: var(--ei-surface-raised);
+    border-top: 1px solid var(--ei-hairline);
+    padding-top: clamp(2.5rem, 1.8rem + 3vw, 4rem);
+    margin-top: auto;
+  }
+  .ei-footer__grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 2rem;
+    padding-bottom: 2.5rem;
+  }
+  .ei-footer__brand {
+    max-width: 32ch;
+  }
+  .ei-footer__tag {
+    margin-top: 1rem;
+    color: var(--ei-muted);
+    font-size: 0.92rem;
+  }
+  .ei-footer__col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .ei-footer__col h2 {
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ei-faint);
+    margin-bottom: 0.2rem;
+  }
+  .ei-footer__col a {
+    color: var(--ei-muted);
+    font-size: 0.94rem;
+    width: fit-content;
+    transition: color 0.2s var(--ei-ease);
+  }
+  .ei-footer__col a:hover {
+    color: var(--ei-accent-strong);
+  }
+  .ei-footer__legal-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    padding-block: 1.2rem;
+    border-top: 1px solid var(--ei-hairline);
+  }
+  .ei-footer__legal-row a {
+    color: var(--ei-faint);
+    font-size: 0.86rem;
+    transition: color 0.2s var(--ei-ease);
+  }
+  .ei-footer__legal-row a:hover {
+    color: var(--ei-accent-strong);
+  }
+  .ei-footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    justify-content: space-between;
+    padding-block: 1.4rem;
+    border-top: 1px solid var(--ei-hairline);
+    color: var(--ei-faint);
+    font-size: 0.84rem;
+  }
+
+  .ei-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+  .ei-brand__mark {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(140deg, var(--ei-accent), var(--ei-accent-strong));
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .ei-brand__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+  }
+  .ei-brand__text span {
+    font-weight: 600;
+  }
+  .ei-brand__text small {
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ei-gold-text);
+  }
+
+  @media (max-width: 760px) {
+    .ei-footer__grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 1.75rem;
+    }
+    .ei-footer__brand {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 440px) {
+    .ei-footer__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

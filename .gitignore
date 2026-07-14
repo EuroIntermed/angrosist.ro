@@ -1,2 +1,17 @@
+# build output
 dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# env (never commit secrets/URLs — Hard Rule #1)
+.env
+.env.production
+.env.*.local
+
+# vercel
+.vercel/
+
+# os
 .DS_Store

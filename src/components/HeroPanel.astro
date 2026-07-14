@@ -1,0 +1,160 @@
+---
+/**
+ * HeroPanel — the Angrosist hero visual: a structured "B2B request · example"
+ * card showing how a need (product / quantity / delivery) flows into a tailored
+ * offer. Pure CSS/markup, theme-aware, reduced-motion-safe. Replaces the hub's
+ * ecosystem-flow diagram with something specific to the sourcing vertical.
+ */
+import { t } from '../i18n/utils'
+import type { Locale } from '../i18n/ui'
+
+const { locale } = Astro.props as { locale: Locale }
+const p = t(locale).hero.panel
+const rows = [p.product, p.quantity, p.delivery]
+---
+
+<figure class="ag-panel" aria-hidden="true">
+  <div class="ag-panel__glow"></div>
+  <div class="ag-panel__card">
+    <div class="ag-panel__head">
+      <span>{p.kicker}</span>
+      <strong>
+        <span class="ag-panel__dot"></span>
+        {p.status}
+      </strong>
+    </div>
+    <dl class="ag-panel__list">
+      {
+        rows.map((r) => (
+          <div class="ag-panel__row">
+            <dt>{r.label}</dt>
+            <dd>{r.value}</dd>
+          </div>
+        ))
+      }
+    </dl>
+    <div class="ag-panel__flow">
+      {
+        p.flow.map((step, i) => (
+          <>
+            {i > 0 && <span class="ag-panel__arrow">&rarr;</span>}
+            <span class={`ag-panel__step ${i === p.flow.length - 1 ? 'is-final' : ''}`}>{step}</span>
+          </>
+        ))
+      }
+    </div>
+  </div>
+</figure>
+
+<style>
+  .ag-panel {
+    position: relative;
+    margin: 0;
+    width: 100%;
+    max-width: 460px;
+  }
+  .ag-panel__glow {
+    position: absolute;
+    inset: -18% -12% -22% -12%;
+    background: radial-gradient(60% 60% at 60% 30%, var(--ei-accent-soft), transparent 70%),
+      radial-gradient(50% 50% at 20% 90%, var(--ei-gold-soft), transparent 70%);
+    filter: blur(4px);
+    pointer-events: none;
+  }
+  .ag-panel__card {
+    position: relative;
+    padding: clamp(1.4rem, 1.1rem + 1vw, 2rem);
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline-strong);
+    border-radius: var(--ei-radius-lg);
+    box-shadow: var(--ei-shadow-lg);
+  }
+  .ag-panel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    margin-bottom: 0.4rem;
+    border-bottom: 1px solid var(--ei-hairline);
+  }
+  .ag-panel__head span {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ei-faint);
+  }
+  .ag-panel__head strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--ei-accent-text);
+  }
+  .ag-panel__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ei-accent);
+    box-shadow: 0 0 0 4px var(--ei-accent-soft);
+    animation: ei-badge-dot 2.4s ease-in-out infinite;
+  }
+  .ag-panel__list {
+    margin: 0;
+  }
+  .ag-panel__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--ei-hairline);
+  }
+  .ag-panel__row:last-child {
+    border-bottom: 0;
+  }
+  .ag-panel__row dt {
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--ei-faint);
+  }
+  .ag-panel__row dd {
+    margin: 0;
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: var(--ei-ink);
+  }
+  .ag-panel__flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.2rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--ei-hairline);
+  }
+  .ag-panel__step {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35em 0.75em;
+    border-radius: var(--ei-radius-pill);
+    background: var(--ei-ground-2);
+    border: 1px solid var(--ei-hairline);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ei-ink-soft);
+  }
+  .ag-panel__step.is-final {
+    background: var(--ei-accent-soft);
+    border-color: var(--ei-accent);
+    color: var(--ei-accent-strong);
+  }
+  .ag-panel__arrow {
+    color: var(--ei-faint);
+    font-weight: 700;
+  }
+</style>

@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../components/BaseLayout.astro'
+import Button from '../components/Button.astro'
+import { t } from '../i18n/utils'
+const ro = t('ro').notFound
+const en = t('en').notFound
+---
+
+<BaseLayout locale="ro" title={t('ro').meta.notFoundTitle} description={ro.body}>
+  <section class="ei-404">
+    <div class="ei-container">
+      <p class="ei-404__code" aria-hidden="true">404</p>
+      <h1>{ro.title}</h1>
+      <p class="ei-lead">{ro.body}</p>
+      <p class="ei-404__en">{en.title} — {en.body}</p>
+      <div class="ei-404__actions">
+        <Button href="/" variant="primary">{ro.cta}</Button>
+        <Button href="/en/" variant="secondary">{en.cta}</Button>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .ei-404 {
+    padding-block: clamp(4rem, 3rem + 6vw, 8rem);
+    text-align: center;
+  }
+  .ei-404__code {
+    font-size: clamp(4rem, 3rem + 8vw, 8rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    background: linear-gradient(120deg, var(--ei-accent), var(--ei-gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 1rem;
+  }
+  .ei-404 h1 {
+    margin-bottom: 0.8rem;
+  }
+  .ei-404 .ei-lead {
+    margin-inline: auto;
+  }
+  .ei-404__en {
+    margin-top: 0.8rem;
+    color: var(--ei-faint);
+    font-size: 0.9rem;
+    max-width: 55ch;
+    margin-inline: auto;
+  }
+  .ei-404__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+</style>

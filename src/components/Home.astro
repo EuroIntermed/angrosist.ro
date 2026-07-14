@@ -1,0 +1,295 @@
+---
+/**
+ * Home — full homepage body for a single locale (rendered by /index.astro and
+ * /en/index.astro). Angrosist spine:
+ *   hero → value strip → category grid (→ Produse) → 3-step how-it-works →
+ *   trust strip → ecosystem cross-links (hub + siblings) → FAQ → WhatsApp CTA.
+ * All copy comes from the i18n dictionary; ecosystem URLs come from env.
+ */
+import type { Locale } from '../i18n/ui'
+import { t, localizePath } from '../i18n/utils'
+import { verticalUrls, waLink } from '../lib/config'
+import BaseLayout from './BaseLayout.astro'
+import Hero from './Hero.astro'
+import Section from './Section.astro'
+import Card from './Card.astro'
+import Button from './Button.astro'
+import FAQ from './FAQ.astro'
+
+const { locale } = Astro.props as { locale: Locale }
+const c = t(locale)
+const contactHref = localizePath('/contact', locale)
+const produseHref = localizePath('/produse', locale)
+const howHref = localizePath('/cum-functioneaza', locale)
+
+// Ecosystem cross-links — destinations from env (Hard Rule #1).
+const pillarLinks: Record<string, { url: string; ga: string }> = {
+  hub: { url: verticalUrls.hub, ga: 'euro-intermed' },
+  palletclearance: { url: verticalUrls.palletclearance, ga: 'clearance' },
+  skalyou: { url: verticalUrls.skalyou, ga: 'skalyou' },
+}
+---
+
+<BaseLayout locale={locale} title={c.meta.homeTitle} description={c.meta.homeDescription}>
+  <Hero locale={locale} />
+
+  <!-- Value strip -->
+  <Section tone="raised" labelledby="value-title">
+    <div class="ei-head" data-reveal>
+      <p class="ei-eyebrow">{c.value.eyebrow}</p>
+      <h2 id="value-title">{c.value.title}</h2>
+      <p class="ei-lead">{c.value.copy}</p>
+    </div>
+    <div class="ei-grid ei-grid--4">
+      {
+        c.value.items.map((item, i) => (
+          <Card title={item.title} index={i}>
+            <p>{item.body}</p>
+          </Card>
+        ))
+      }
+    </div>
+  </Section>
+
+  <!-- Category grid → Produse -->
+  <Section id="categorii" labelledby="cat-title">
+    <div class="ei-head" data-reveal>
+      <p class="ei-eyebrow">{c.categories.eyebrow}</p>
+      <h2 id="cat-title">{c.categories.title}</h2>
+      <p class="ei-lead">{c.categories.copy}</p>
+    </div>
+    <div class="ei-grid ei-grid--3">
+      {
+        c.categories.items.map((item, i) => (
+          <Card href={produseHref} title={item.name} index={i}>
+            <p>{item.body}</p>
+          </Card>
+        ))
+      }
+    </div>
+    <div class="ei-head__cta" data-reveal>
+      <Button href={produseHref} variant="primary">{c.categories.cta} &rarr;</Button>
+    </div>
+  </Section>
+
+  <!-- How it works (3 steps) -->
+  <Section id="how-we-work" tone="raised" labelledby="proc-title">
+    <div class="ei-head ei-head--center" data-reveal>
+      <p class="ei-eyebrow">{c.process.eyebrow}</p>
+      <h2 id="proc-title">{c.process.title}</h2>
+    </div>
+    <ol class="ei-steps">
+      {
+        c.process.steps.map((step, i) => (
+          <li class="ei-step" data-reveal style={`--i:${i}`}>
+            <span class="ei-step__n" aria-hidden="true">{i + 1}</span>
+            <h3>{step.title}</h3>
+            <p>{step.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+    <div class="ei-head__cta ei-head__cta--center" data-reveal>
+      <Button href={howHref} variant="secondary">{c.process.cta} &rarr;</Button>
+    </div>
+  </Section>
+
+  <!-- Trust strip -->
+  <Section labelledby="trust-title">
+    <div class="ei-head ei-head--center" data-reveal>
+      <p class="ei-eyebrow">{c.trust.eyebrow}</p>
+      <h2 id="trust-title">{c.trust.title}</h2>
+    </div>
+    <div class="ei-grid ei-grid--3">
+      {
+        c.trust.items.map((item, i) => (
+          <Card title={item.title} index={i}>
+            <p>{item.body}</p>
+          </Card>
+        ))
+      }
+    </div>
+  </Section>
+
+  <!-- Ecosystem cross-links -->
+  <Section id="ecosystem" tone="contrast" labelledby="eco-title">
+    <div class="ei-head ei-head--center" data-reveal>
+      <p class="ei-eyebrow">{c.ecosystem.eyebrow}</p>
+      <h2 id="eco-title">{c.ecosystem.title}</h2>
+      <p class="ei-lead">{c.ecosystem.copy}</p>
+    </div>
+    <div class="ei-grid ei-grid--3">
+      {
+        c.ecosystem.pillars.map((p, i) => {
+          const link = pillarLinks[p.key]
+          return (
+            <Card variant="pillar" roadmap={p.roadmap} badge={p.badge} title={p.name} index={i}>
+              <p class="ei-pillar-line">{p.line}</p>
+              <div class="ei-card__pillar-actions">
+                <Button
+                  href={link.url}
+                  variant={p.roadmap ? 'ghost' : 'secondary'}
+                  size="sm"
+                  target="_blank"
+                  rel="noopener"
+                  data-ga-vertical={link.ga}
+                >
+                  {p.cta} &rarr;
+                </Button>
+              </div>
+            </Card>
+          )
+        })
+      }
+    </div>
+  </Section>
+
+  <!-- FAQ -->
+  <Section id="faq" labelledby="faq-title">
+    <div class="ei-head ei-head--center" data-reveal>
+      <p class="ei-eyebrow">{c.faq.eyebrow}</p>
+      <h2 id="faq-title">{c.faq.title}</h2>
+    </div>
+    <FAQ items={c.faq.items} />
+  </Section>
+
+  <!-- Final WhatsApp CTA -->
+  <Section id="contact" tone="contrast" labelledby="cta-title">
+    <div class="ei-cta" data-reveal>
+      <p class="ei-eyebrow">{c.contactCta.eyebrow}</p>
+      <h2 id="cta-title">{c.contactCta.title}</h2>
+      <p class="ei-lead">{c.contactCta.copy}</p>
+      <div class="ei-cta__actions">
+        <Button href={waLink(c.hero.whatsappText)} variant="whatsapp" target="_blank" rel="noopener" data-ga-vertical="whatsapp">
+          {c.contactCta.primary}
+        </Button>
+        <Button href={contactHref} variant="secondary">{c.contactCta.secondary}</Button>
+      </div>
+    </div>
+  </Section>
+</BaseLayout>
+
+<style>
+  .ei-head {
+    max-width: 60ch;
+    margin-bottom: 2.5rem;
+  }
+  .ei-head--center {
+    margin-inline: auto;
+    text-align: center;
+  }
+  .ei-head--center .ei-lead {
+    margin-inline: auto;
+  }
+  .ei-head h2 {
+    margin-top: 0.7rem;
+  }
+  .ei-head .ei-lead {
+    margin-top: 1rem;
+  }
+  .ei-head__cta {
+    margin-top: 2rem;
+  }
+  .ei-head__cta--center {
+    text-align: center;
+  }
+
+  .ei-grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .ei-grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .ei-grid--4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .ei-pillar-line {
+    font-size: 1.02rem;
+  }
+
+  /* Process steps */
+  .ei-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    counter-reset: step;
+  }
+  .ei-step {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 1.6rem 1.5rem;
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-md);
+  }
+  .ei-step__n {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--ei-accent-soft);
+    color: var(--ei-accent-text);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .ei-step h3 {
+    font-size: 1.08rem;
+  }
+  .ei-step p {
+    color: var(--ei-muted);
+    font-size: 0.94rem;
+  }
+
+  /* Contact CTA */
+  .ei-cta {
+    max-width: 60ch;
+    margin-inline: auto;
+    text-align: center;
+  }
+  .ei-cta h2 {
+    margin-top: 0.7rem;
+  }
+  .ei-cta .ei-lead {
+    margin: 1rem auto 0;
+  }
+  .ei-cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+  .ei-cta__actions :global(.ei-btn--secondary),
+  .ei-cta__actions :global(.ei-btn--ghost) {
+    --_fg: var(--ei-on-contrast);
+    --_bd: rgba(255, 255, 255, 0.35);
+  }
+  .ei-cta__actions :global(.ei-btn--secondary:hover) {
+    --_bg: rgba(255, 255, 255, 0.1);
+    --_bd: var(--ei-on-contrast);
+    --_fg: var(--ei-on-contrast);
+  }
+
+  @media (max-width: 960px) {
+    .ei-grid--3,
+    .ei-grid--4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .ei-steps {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 560px) {
+    .ei-grid--3,
+    .ei-grid--4 {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

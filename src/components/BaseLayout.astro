@@ -1,0 +1,152 @@
+---
+/**
+ * BaseLayout — the single HTML shell for every Angrosist page.
+ *
+ * Identical structure to the Euro-Intermed hub shell; the only theme switch is
+ * `data-vertical="angrosist"` on <html>, which selects the TEAL accent layer from
+ * the shared global.css (Hard Rule: one shared design system, swappable accent).
+ *
+ * Responsibilities:
+ *  - <head>: title, meta description, canonical, OpenGraph + Twitter, hreflang
+ *    (RO/EN + x-default), JSON-LD WebSite (+ publisher Organization), favicon.
+ *  - Pre-paint theme script (applies the saved light/dark choice, no flash).
+ *  - Self-hosted DM Sans variable font (no Google Fonts CDN — GDPR).
+ *  - Env-driven injection of GA4 Consent Mode (Analytics) and the chat widget,
+ *    plus the cookie banner — the latter two only when their env is set.
+ *  - Nav + Footer chrome around the page slot.
+ */
+import '@fontsource-variable/dm-sans'
+import '../styles/global.css'
+import type { Locale } from '../i18n/ui'
+import { t, switchLocalePath, htmlLang, ogLocale } from '../i18n/utils'
+import { siteUrl, analyticsEnabled, contactEmail, contactPhone, verticalUrls } from '../lib/config'
+import Nav from './Nav.astro'
+import Footer from './Footer.astro'
+import Analytics from './Analytics.astro'
+import CookieBanner from './CookieBanner.astro'
+import Widget from './Widget.astro'
+
+interface Props {
+  locale: Locale
+  title: string
+  description: string
+  /** OpenGraph type; defaults to "website". */
+  ogType?: string
+  /** Hide the footer (e.g. for the 404). */
+  bare?: boolean
+}
+const { locale, title, description, ogType = 'website', bare = false } = Astro.props
+
+const nav = t(locale).nav
+const path = Astro.url.pathname
+const canonical = new URL(path, siteUrl).href
+const roUrl = new URL(switchLocalePath(path, 'ro'), siteUrl).href
+const enUrl = new URL(switchLocalePath(path, 'en'), siteUrl).href
+const ogImage = new URL('/favicon.svg', siteUrl).href
+
+// JSON-LD: Angrosist WebSite, published by the Euro-Intermed operating company.
+const siteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Angrosist.ro',
+  url: siteUrl,
+  inLanguage: htmlLang[locale],
+  publisher: {
+    '@type': 'Organization',
+    name: 'EURO INTERMED SOLUTIONS',
+    email: contactEmail,
+    telephone: contactPhone,
+    url: verticalUrls.hub,
+    vatID: 'RO39132147',
+    identifier: 'J8/735/2018',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Brașov',
+      addressCountry: 'RO',
+    },
+  },
+}
+---
+
+<!doctype html>
+<html lang={htmlLang[locale]} data-locale={locale} data-vertical="angrosist">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Apply the saved theme before paint to avoid a flash. -->
+    <script is:inline>
+      (function () {
+        try {
+          var saved = localStorage.getItem('ei-theme')
+          if (saved === 'light' || saved === 'dark') {
+            document.documentElement.dataset.theme = saved
+          }
+        } catch (e) {}
+      })()
+    </script>
+
+    <!-- GA4 + Consent Mode v2 (only when GA_MEASUREMENT_ID is set). -->
+    <Analytics />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#faf9f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#08262b" media="(prefers-color-scheme: dark)" />
+
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="ro" href={roUrl} />
+    <link rel="alternate" hreflang="en" href={enUrl} />
+    <link rel="alternate" hreflang="x-default" href={roUrl} />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <!-- OpenGraph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="Angrosist.ro" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content={ogLocale[locale]} />
+    <meta property="og:locale:alternate" content={ogLocale[locale === 'ro' ? 'en' : 'ro']} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(siteJsonLd)} />
+
+    <slot name="head" />
+  </head>
+
+  <body>
+    <a class="ei-skip-link" href="#main">{nav.skip}</a>
+    <Nav locale={locale} />
+    <main id="main">
+      <slot />
+    </main>
+    {!bare && <Footer locale={locale} />}
+
+    {analyticsEnabled && <CookieBanner locale={locale} />}
+    <Widget locale={locale} />
+
+    <script>
+      import '../scripts/site.ts'
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  main {
+    flex: 1 0 auto;
+  }
+</style>

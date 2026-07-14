@@ -1,0 +1,46 @@
+---
+/**
+ * Analytics — GA4 with Google Consent Mode v2, injected ONLY when
+ * GA_MEASUREMENT_ID is set (env). This is the Astro re-implementation of the
+ * GA block that build.mjs used to template into index.html.
+ *
+ * Consent Mode v2 defaults analytics_storage to 'denied' (no analytics cookies
+ * before consent — GDPR). A prior "granted" choice in localStorage is restored
+ * so returning visitors aren't re-prompted. The visible opt-in lives in
+ * CookieBanner. When no GA id is configured this component renders nothing, so
+ * the page ships with no GA snippet at all.
+ *
+ * Belongs in <head>.
+ */
+import { analyticsEnabled, gaMeasurementId } from '../lib/config'
+---
+
+{
+  analyticsEnabled && (
+    <>
+      <script is:inline define:vars={{ gaId: gaMeasurementId }}>
+        {`
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        // Consent Mode v2: deny analytics storage until the visitor opts in (GDPR).
+        gtag('consent', 'default', {
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          analytics_storage: 'denied',
+          wait_for_update: 500
+        });
+        // Restore a prior "granted" choice so returning visitors aren't re-prompted.
+        try {
+          if (localStorage.getItem('ei-analytics-consent') === 'granted') {
+            gtag('consent', 'update', { analytics_storage: 'granted' });
+          }
+        } catch (e) {}
+        gtag('js', new Date());
+        gtag('config', gaId, { anonymize_ip: true });
+      `}
+      </script>
+      <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`} />
+    </>
+  )
+}

@@ -1,0 +1,271 @@
+---
+/**
+ * ContactPage — WhatsApp-first B2B contact. There is NO contact form anywhere on
+ * the site (design-system standard for all three ecosystem sites): the two intake
+ * channels are (1) WhatsApp, via an intent chooser that pre-fills a wa.me message
+ * per B2B route, and (2) the AI chat widget (bottom-right launcher). Email + phone
+ * are secondary. Do NOT reintroduce an HTML contact form or a form-POST endpoint.
+ */
+import type { Locale } from '../i18n/ui'
+import { t } from '../i18n/utils'
+import { waLink, contactEmail, contactPhone, calendlyUrl } from '../lib/config'
+import BaseLayout from './BaseLayout.astro'
+import Button from './Button.astro'
+
+const { locale } = Astro.props as { locale: Locale }
+const c = t(locale)
+const ct = c.contact
+const options = ct.intentOptions
+// Default selection = the primary sourcing route.
+const defaultIndex = 0
+const defaultWa = options[defaultIndex].wa
+---
+
+<BaseLayout locale={locale} title={c.meta.contactTitle} description={c.meta.contactDescription}>
+  <section class="ei-contact">
+    <div class="ei-container ei-contact__grid">
+      <div class="ei-contact__main" data-reveal>
+        <p class="ei-eyebrow">{ct.eyebrow}</p>
+        <h1>{ct.title}</h1>
+        <p class="ei-lead">{ct.lead}</p>
+
+        <div class="ei-wa" data-wa-chooser>
+          <p class="ei-wa__label" id="ei-intent-label">{ct.chooseLabel}</p>
+          <div class="ei-wa__chips" role="radiogroup" aria-labelledby="ei-intent-label">
+            {
+              options.map((o, i) => (
+                <label class="ei-chip">
+                  <input
+                    type="radio"
+                    name="ei-intent"
+                    value={o.value}
+                    data-wa={o.wa}
+                    checked={i === defaultIndex}
+                  />
+                  <span>{o.label}</span>
+                </label>
+              ))
+            }
+          </div>
+
+          <p class="ei-wa__helper" data-wa-helper>{ct.whatsapp.helper}</p>
+          <Button
+            href={waLink(defaultWa)}
+            variant="whatsapp"
+            target="_blank"
+            rel="noopener"
+            data-wa-link
+            data-ga-vertical="whatsapp"
+            class="ei-wa__cta"
+          >
+            {ct.whatsapp.cta}
+          </Button>
+        </div>
+      </div>
+
+      <aside class="ei-contact__aside">
+        <div class="ei-panel ei-panel--accent" data-reveal style="--i:1">
+          <p class="ei-eyebrow">{ct.widget.eyebrow}</p>
+          <h2>{ct.widget.title}</h2>
+          <p>{ct.widget.body}</p>
+        </div>
+
+        <div class="ei-panel" data-reveal style="--i:2">
+          <p class="ei-eyebrow">{ct.next.eyebrow}</p>
+          <ul class="ei-panel__list">
+            {ct.next.items.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+
+        <div class="ei-panel" data-reveal style="--i:3">
+          <p class="ei-eyebrow">{ct.direct.eyebrow}</p>
+          <dl class="ei-panel__dl">
+            <dt>{ct.direct.email}</dt>
+            <dd><a href={`mailto:${contactEmail}`}>{contactEmail}</a></dd>
+            <dt>{ct.direct.phone}</dt>
+            <dd><a href={`tel:${contactPhone}`}>{contactPhone}</a></dd>
+          </dl>
+          <a class="ei-panel__cal" href={calendlyUrl} target="_blank" rel="noopener">{ct.direct.calendlyCta} &rarr;</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<script is:inline define:vars={{ waBase: waLink() }}>
+  {`
+  (function () {
+    var chooser = document.querySelector('[data-wa-chooser]');
+    if (!chooser) return;
+    var link = chooser.querySelector('[data-wa-link]');
+    var radios = chooser.querySelectorAll('input[name="ei-intent"]');
+    function update() {
+      var checked = chooser.querySelector('input[name="ei-intent"]:checked');
+      var text = checked ? checked.getAttribute('data-wa') : '';
+      if (link) link.setAttribute('href', text ? waBase + '?text=' + encodeURIComponent(text) : waBase);
+    }
+    radios.forEach(function (r) { r.addEventListener('change', update); });
+    update();
+  })();
+  `}
+</script>
+
+<style>
+  .ei-contact {
+    padding-block: clamp(2.5rem, 2rem + 4vw, 5rem);
+  }
+  .ei-contact__grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: clamp(2rem, 1rem + 4vw, 4rem);
+    align-items: start;
+  }
+  .ei-contact__main h1 {
+    margin-top: 0.7rem;
+  }
+  .ei-contact__main .ei-lead {
+    margin-top: 1rem;
+  }
+
+  /* WhatsApp intent chooser */
+  .ei-wa {
+    margin-top: 2rem;
+    padding: clamp(1.5rem, 1.2rem + 1.4vw, 2.2rem);
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-lg);
+    box-shadow: var(--ei-shadow-sm);
+  }
+  .ei-wa__label {
+    margin: 0 0 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ei-ink-soft);
+  }
+  .ei-wa__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .ei-chip {
+    cursor: pointer;
+  }
+  .ei-chip input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+  .ei-chip span {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.55em 1em;
+    border: 1px solid var(--ei-hairline-strong);
+    border-radius: var(--ei-radius-pill);
+    background: var(--ei-ground);
+    color: var(--ei-ink-soft);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition:
+      border-color 0.2s var(--ei-ease),
+      background 0.2s var(--ei-ease),
+      color 0.2s var(--ei-ease),
+      transform 0.15s var(--ei-ease-out);
+  }
+  .ei-chip:hover span {
+    border-color: var(--ei-accent);
+    transform: translateY(-1px);
+  }
+  .ei-chip input:checked + span {
+    background: var(--ei-accent-soft);
+    border-color: var(--ei-accent);
+    color: var(--ei-accent-strong);
+    font-weight: 600;
+  }
+  .ei-chip input:focus-visible + span {
+    outline: 2px solid var(--ei-focus);
+    outline-offset: 2px;
+  }
+  .ei-wa__helper {
+    margin: 1.3rem 0 1rem;
+    color: var(--ei-muted);
+    font-size: 0.92rem;
+  }
+  .ei-wa :global(.ei-wa__cta) {
+    width: 100%;
+  }
+
+  /* Aside panels */
+  .ei-contact__aside {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    position: sticky;
+    top: 92px;
+  }
+  .ei-panel {
+    padding: 1.4rem 1.5rem;
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-lg);
+    box-shadow: var(--ei-shadow-sm);
+  }
+  .ei-panel--accent {
+    background: var(--ei-accent-soft);
+    border-color: var(--ei-accent);
+  }
+  .ei-panel h2 {
+    font-size: 1.2rem;
+    margin-top: 0.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .ei-panel p {
+    color: var(--ei-muted);
+    font-size: 0.92rem;
+  }
+  .ei-panel__list {
+    margin: 0.6rem 0 0;
+    padding-left: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--ei-muted);
+    font-size: 0.9rem;
+  }
+  .ei-panel__dl {
+    margin: 0.7rem 0 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.35rem 1rem;
+    font-size: 0.92rem;
+  }
+  .ei-panel__dl dt {
+    color: var(--ei-faint);
+    font-weight: 600;
+  }
+  .ei-panel__dl dd {
+    margin: 0;
+  }
+  .ei-panel__dl a {
+    color: var(--ei-accent-strong);
+  }
+  .ei-panel__cal {
+    display: inline-block;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ei-accent-strong);
+  }
+  .ei-panel__cal:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 900px) {
+    .ei-contact__grid {
+      grid-template-columns: 1fr;
+    }
+    .ei-contact__aside {
+      position: static;
+    }
+  }
+</style>

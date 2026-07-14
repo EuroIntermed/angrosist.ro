@@ -1,0 +1,52 @@
+---
+/**
+ * Section — vertical rhythm wrapper with tone variants.
+ *   default   → page ground
+ *   raised    → subtle raised surface
+ *   contrast  → deep green band with light text (reversed accents)
+ */
+interface Props {
+  id?: string
+  tone?: 'default' | 'raised' | 'contrast'
+  labelledby?: string
+  class?: string
+}
+const { id, tone = 'default', labelledby, class: className = '' } = Astro.props
+---
+
+<section
+  id={id}
+  class={`ei-section ei-section--${tone} ${className}`.trim()}
+  aria-labelledby={labelledby}
+>
+  <div class="ei-container">
+    <slot />
+  </div>
+</section>
+
+<style>
+  .ei-section {
+    padding-block: clamp(3.5rem, 2.2rem + 5vw, 7rem);
+    position: relative;
+  }
+  .ei-section--raised {
+    background: var(--ei-surface-raised);
+    border-block: 1px solid var(--ei-hairline);
+  }
+  .ei-section--contrast {
+    background: var(--ei-surface-contrast);
+    color: var(--ei-on-contrast);
+  }
+  /* Recolor only the band's OWN headings — exclude headings inside nested light
+     surfaces (cards) so their titles keep the dark ink and don't ghost on white. */
+  .ei-section--contrast :global(h2:not(.ei-card__title)),
+  .ei-section--contrast :global(h3:not(.ei-card__title)) {
+    color: var(--ei-on-contrast);
+  }
+  .ei-section--contrast :global(.ei-eyebrow) {
+    color: var(--ei-eyebrow-band);
+  }
+  .ei-section--contrast :global(.ei-lead) {
+    color: var(--ei-on-contrast-muted);
+  }
+</style>

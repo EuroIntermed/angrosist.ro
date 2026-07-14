@@ -1,0 +1,113 @@
+---
+/**
+ * Button — renders as an <a> when `href` is set, otherwise a <button>.
+ * Variants: primary (green fill), secondary (outline), ghost (quiet), whatsapp.
+ * Any extra attributes (data-ga-vertical, data-route, target, rel, type…) pass
+ * through via ...rest so GA wiring and WhatsApp deep-links keep working.
+ */
+interface Props {
+  href?: string
+  variant?: 'primary' | 'secondary' | 'ghost' | 'whatsapp'
+  size?: 'md' | 'sm'
+  class?: string
+  [key: string]: unknown
+}
+const {
+  href,
+  variant = 'primary',
+  size = 'md',
+  class: className = '',
+  ...rest
+} = Astro.props
+const Tag = href ? 'a' : 'button'
+const cls = `ei-btn ei-btn--${variant} ei-btn--${size} ${className}`.trim()
+---
+
+<Tag class={cls} href={href} {...rest}>
+  {variant === 'whatsapp' && (
+    <svg class="ei-btn__wa" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
+      <path d="M17.5 14.4c-.3-.15-1.7-.84-1.96-.94-.26-.1-.45-.15-.64.15-.19.29-.74.94-.9 1.13-.17.19-.33.21-.62.07-.29-.15-1.22-.45-2.33-1.44-.86-.77-1.44-1.72-1.6-2.01-.17-.29-.02-.45.13-.6.13-.13.29-.34.44-.5.15-.17.19-.29.29-.48.1-.19.05-.36-.02-.5-.07-.15-.64-1.55-.88-2.12-.23-.55-.47-.48-.64-.49-.17-.01-.36-.01-.55-.01-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.38 0 1.4 1.02 2.76 1.17 2.95.15.19 2.02 3.08 4.9 4.32.68.29 1.22.47 1.64.6.69.22 1.31.19 1.81.11.55-.08 1.7-.69 1.94-1.36.24-.67.24-1.24.17-1.36-.07-.12-.26-.19-.55-.34zM12.05 21.5h-.01a9.4 9.4 0 0 1-4.8-1.32l-.34-.2-3.57.94.95-3.48-.22-.36a9.42 9.42 0 0 1-1.44-5.02c0-5.2 4.24-9.44 9.46-9.44 2.53 0 4.9.99 6.69 2.78a9.4 9.4 0 0 1 2.77 6.68c0 5.2-4.24 9.44-9.45 9.44zM20.5 3.5A11.34 11.34 0 0 0 12.05 0C5.8 0 .72 5.08.72 11.32c0 2 .52 3.95 1.5 5.67L.62 24l7.17-1.88a11.32 11.32 0 0 0 5.42 1.38h.01c6.24 0 11.32-5.08 11.32-11.32 0-3.02-1.18-5.87-3.32-8.02z"/>
+    </svg>
+  )}
+  <slot />
+</Tag>
+
+<style>
+  .ei-btn {
+    --_bg: var(--ei-accent);
+    --_fg: var(--ei-accent-ink);
+    --_bd: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    padding: 0.85em 1.5em;
+    border: 1px solid var(--_bd);
+    border-radius: var(--ei-radius-pill);
+    background: var(--_bg);
+    color: var(--_fg);
+    font-size: 0.98rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    cursor: pointer;
+    text-align: center;
+    transition:
+      transform 0.2s var(--ei-ease-out),
+      box-shadow 0.25s var(--ei-ease),
+      background-color 0.2s var(--ei-ease),
+      border-color 0.2s var(--ei-ease);
+  }
+  .ei-btn--sm {
+    padding: 0.6em 1.1em;
+    font-size: 0.9rem;
+  }
+  .ei-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ei-shadow-md);
+  }
+  .ei-btn:active {
+    transform: translateY(0);
+  }
+
+  .ei-btn--primary {
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15) inset, var(--ei-shadow-sm);
+  }
+  .ei-btn--primary:hover {
+    --_bg: var(--ei-accent-hover);
+    box-shadow: var(--ei-shadow-lg);
+  }
+
+  .ei-btn--secondary {
+    --_bg: transparent;
+    --_fg: var(--ei-ink);
+    --_bd: var(--ei-hairline-strong);
+  }
+  .ei-btn--secondary:hover {
+    --_bg: var(--ei-accent-soft);
+    --_bd: var(--ei-accent);
+    --_fg: var(--ei-accent-strong);
+  }
+
+  .ei-btn--ghost {
+    --_bg: transparent;
+    --_fg: var(--ei-accent-strong);
+    --_bd: var(--ei-hairline);
+    padding-inline: 1.2em;
+  }
+  .ei-btn--ghost:hover {
+    --_bg: var(--ei-accent-soft);
+    --_bd: var(--ei-accent);
+  }
+
+  .ei-btn--whatsapp {
+    --_bg: var(--ei-whatsapp);
+    --_fg: var(--ei-whatsapp-ink);
+  }
+  .ei-btn--whatsapp:hover {
+    --_bg: #1ebe5a;
+  }
+  .ei-btn__wa {
+    flex: 0 0 auto;
+  }
+</style>

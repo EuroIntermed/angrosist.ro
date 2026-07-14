@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Angrosist">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0E7C86"/>
+      <stop offset="1" stop-color="#0A616A"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#g)"/>
+  <rect x="4" y="4" width="56" height="56" rx="12" fill="none" stroke="#6FB4DE" stroke-opacity="0.55" stroke-width="2"/>
+  <text x="32" y="43" text-anchor="middle" font-family="DM Sans, system-ui, sans-serif" font-size="30" font-weight="700" fill="#FFFFFF" letter-spacing="0.5">A</text>
+</svg>

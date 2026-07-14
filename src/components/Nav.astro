@@ -1,0 +1,234 @@
+---
+/**
+ * Nav — brand + section links + LangToggle + ThemeToggle + mobile menu.
+ * Scroll-aware: gains a background/shadow after the page scrolls. Themed for
+ * Angrosist via the shared token layer (teal accent from data-vertical).
+ */
+import type { Locale } from '../i18n/ui'
+import { t, localizePath } from '../i18n/utils'
+import { waLink } from '../lib/config'
+import LangToggle from './LangToggle.astro'
+import ThemeToggle from './ThemeToggle.astro'
+import Button from './Button.astro'
+
+const { locale } = Astro.props as { locale: Locale }
+const c = t(locale)
+const nav = c.nav
+const home = localizePath('/', locale)
+
+// Page links + one home-anchored FAQ link (prefixed with home so it works from
+// any page).
+const links = [
+  { href: localizePath('/produse', locale), label: nav.produse },
+  { href: localizePath('/cum-functioneaza', locale), label: nav.how },
+  { href: `${home}#faq`, label: nav.faq },
+  { href: localizePath('/contact', locale), label: nav.contact },
+]
+---
+
+<header class="ei-nav" data-nav>
+  <div class="ei-container ei-nav__inner">
+    <a class="ei-brand" href={home} aria-label={c.brand.name}>
+      <span class="ei-brand__mark" aria-hidden="true">{c.brand.mark}</span>
+      <span class="ei-brand__text">
+        <span>{c.brand.name}</span>
+        <small>{c.brand.tagline}</small>
+      </span>
+    </a>
+
+    <button
+      class="ei-nav__toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="ei-nav-menu"
+      aria-label={nav.openMenu}
+      data-menu-toggle
+    >
+      <span class="ei-nav__bar"></span>
+      <span class="ei-nav__bar"></span>
+    </button>
+
+    <nav class="ei-nav__menu" id="ei-nav-menu" aria-label="Primary" data-menu>
+      <div class="ei-nav__links">
+        {links.map((a) => <a href={a.href}>{a.label}</a>)}
+      </div>
+      <div class="ei-nav__tools">
+        <LangToggle locale={locale} />
+        <ThemeToggle locale={locale} />
+        <Button href={waLink(c.hero.whatsappText)} variant="primary" size="sm" target="_blank" rel="noopener" data-ga-vertical="whatsapp">{nav.cta}</Button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .ei-nav {
+    position: sticky;
+    top: 0;
+    z-index: 900;
+    border-bottom: 1px solid transparent;
+    transition: background-color 0.3s var(--ei-ease), border-color 0.3s var(--ei-ease), box-shadow 0.3s var(--ei-ease), backdrop-filter 0.3s;
+  }
+  .ei-nav.ei-is-scrolled {
+    background: color-mix(in srgb, var(--ei-ground) 82%, transparent);
+    backdrop-filter: saturate(140%) blur(12px);
+    border-bottom-color: var(--ei-hairline);
+    box-shadow: var(--ei-shadow-sm);
+  }
+  .ei-nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 68px;
+  }
+
+  .ei-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+  .ei-brand__mark {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(140deg, var(--ei-accent), var(--ei-accent-strong));
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    box-shadow: inset 0 0 0 1px rgba(111, 180, 222, 0.4);
+  }
+  .ei-brand__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+  }
+  .ei-brand__text span {
+    font-weight: 600;
+    font-size: 0.98rem;
+    letter-spacing: -0.01em;
+  }
+  .ei-brand__text small {
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ei-gold-text);
+  }
+
+  .ei-nav__menu {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .ei-nav__links {
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+  }
+  .ei-nav__links a {
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--ei-muted);
+    transition: color 0.2s var(--ei-ease);
+  }
+  .ei-nav__links a:hover {
+    color: var(--ei-accent-strong);
+  }
+  .ei-nav__tools {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .ei-nav__toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 42px;
+    height: 42px;
+    padding: 0 10px;
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-sm);
+    background: var(--ei-surface);
+    cursor: pointer;
+  }
+  .ei-nav__bar {
+    height: 2px;
+    width: 100%;
+    background: var(--ei-ink);
+    border-radius: 2px;
+    transition: transform 0.25s var(--ei-ease), opacity 0.2s;
+  }
+  .ei-nav__toggle[aria-expanded='true'] .ei-nav__bar:first-child {
+    transform: translateY(3.5px) rotate(45deg);
+  }
+  .ei-nav__toggle[aria-expanded='true'] .ei-nav__bar:last-child {
+    transform: translateY(-3.5px) rotate(-45deg);
+  }
+
+  @media (max-width: 940px) {
+    .ei-nav__toggle {
+      display: flex;
+    }
+    .ei-nav__menu {
+      position: fixed;
+      inset: 68px 0 auto 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1.25rem;
+      padding: 1.5rem clamp(1.15rem, 0.6rem + 2.4vw, 2.5rem) 2rem;
+      background: var(--ei-surface);
+      border-bottom: 1px solid var(--ei-hairline);
+      box-shadow: var(--ei-shadow-lg);
+      transform: translateY(-8px);
+      opacity: 0;
+      visibility: hidden;
+      transition: transform 0.25s var(--ei-ease-out), opacity 0.2s, visibility 0.2s;
+    }
+    .ei-nav__menu.ei-is-open {
+      transform: translateY(0);
+      opacity: 1;
+      visibility: visible;
+    }
+    .ei-nav__links {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .ei-nav__links a {
+      font-size: 1.05rem;
+    }
+    .ei-nav__tools {
+      justify-content: space-between;
+      padding-top: 1rem;
+      border-top: 1px solid var(--ei-hairline);
+    }
+  }
+</style>
+
+<script>
+  const nav = document.querySelector('[data-nav]')
+  const toggle = document.querySelector('[data-menu-toggle]')
+  const menu = document.querySelector('[data-menu]')
+
+  // Scroll-aware background/shadow.
+  const onScroll = () => nav?.classList.toggle('ei-is-scrolled', window.scrollY > 18)
+  window.addEventListener('scroll', onScroll, { passive: true })
+  onScroll()
+
+  // Mobile menu open/close.
+  const setOpen = (open: boolean) => {
+    menu?.classList.toggle('ei-is-open', open)
+    toggle?.setAttribute('aria-expanded', String(open))
+  }
+  toggle?.addEventListener('click', () => {
+    setOpen(toggle.getAttribute('aria-expanded') !== 'true')
+  })
+  menu?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('a')) setOpen(false)
+  })
+</script>

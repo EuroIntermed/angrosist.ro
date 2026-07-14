@@ -1,0 +1,438 @@
+---
+/**
+ * Catalog — the "Produse" page. A prerendered shell (intro, category chips and a
+ * sample product skeleton for SEO + no-JS) that the client runtime
+ * (src/scripts/catalog.ts) upgrades: it fetches the live sheet from
+ * PUBLIC_PRODUCTS_URL, groups by category, renders cards, and wires each
+ * "Comandă" button into the device-aware order flow.
+ *
+ * Progressive enhancement: without JS, the sample cards' "Comandă" is a real
+ * wa.me link; with JS the button becomes the device-aware widget/WhatsApp chooser.
+ * SEO: page shell + category names + a JSON-LD ItemList are emitted at build time.
+ */
+import type { Locale } from '../i18n/ui'
+import { t } from '../i18n/utils'
+import { waLink, productsUrl, whatsappNumber } from '../lib/config'
+import { groupByCategory, sampleProducts } from '../lib/products'
+import BaseLayout from './BaseLayout.astro'
+
+const { locale } = Astro.props as { locale: Locale }
+const c = t(locale)
+const cat = c.catalog
+
+// Build-time skeleton + SEO content from the bundled sample.
+const groups = groupByCategory(sampleProducts)
+
+// Prefilled order message for the no-JS wa.me fallback on each sample card.
+const orderMessage = (produs: string, categorie: string) =>
+  c.order.message.replace('{product}', produs).replace('{category}', categorie || '—')
+
+// Client config (no secrets — all public). productsUrl is env-injected at build.
+const catalogConfig = {
+  productsUrl,
+  waNumber: whatsappNumber,
+  intent: 'buy',
+  orderTemplate: c.order.message,
+  strings: {
+    filterAll: cat.filterAll,
+    loading: cat.loading,
+    empty: cat.empty,
+    error: cat.error,
+    retry: cat.retry,
+    sampleNote: cat.sampleNote,
+    orderCta: cat.orderCta,
+    priceLabel: cat.priceLabel,
+    unitLabel: cat.unitLabel,
+    imageAlt: cat.imageAlt,
+  },
+}
+
+// JSON-LD ItemList (representative — from the sample catalog).
+const itemListJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: c.meta.produseTitle,
+  itemListElement: sampleProducts
+    .filter((p) => p.activ)
+    .map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Product',
+        name: p.produs,
+        category: p.categorie,
+        description: p.descriere,
+        ...(p.imagine ? { image: p.imagine } : {}),
+      },
+    })),
+}
+const showSampleNote = !productsUrl
+---
+
+<BaseLayout locale={locale} title={c.meta.produseTitle} description={c.meta.produseDescription}>
+  <Fragment slot="head">
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(itemListJsonLd)} />
+  </Fragment>
+
+  <section class="ag-catalog">
+    <div class="ei-container">
+      <div class="ag-catalog__head" data-reveal>
+        <p class="ei-eyebrow">{cat.eyebrow}</p>
+        <h1>{cat.title}</h1>
+        <p class="ei-lead">{cat.lead}</p>
+      </div>
+
+      <div data-catalog-root>
+        <p class="ag-catalog__note" data-catalog-note hidden={!showSampleNote}>{cat.sampleNote}</p>
+
+        <div class="ag-catalog__filters" role="tablist" aria-label={cat.filterLabel} data-catalog-filters>
+          <button type="button" class="ag-chip is-active" role="tab" aria-selected="true">{cat.filterAll}</button>
+          {groups.map((g) => (
+            <button type="button" class="ag-chip" role="tab" aria-selected="false">{g.categorie}</button>
+          ))}
+        </div>
+
+        <div class="ag-catalog__status" data-catalog-status hidden></div>
+
+        <div class="ag-catalog__grid" data-catalog-grid>
+          {
+            groups.map((g) => (
+              <section class="ag-cat" data-category={g.categorie}>
+                <h2 class="ag-cat__title">{g.categorie}</h2>
+                <div class="ag-prod-grid">
+                  {g.items.map((p) => (
+                    <article class="ag-prod">
+                      <div class="ag-prod__media">
+                        {/^https?:\/\//i.test(p.imagine) ? (
+                          <img src={p.imagine} alt={p.produs} loading="lazy" decoding="async" />
+                        ) : (
+                          <div class="ag-prod__ph" aria-hidden="true"><span>{(p.produs.trim()[0] || '·').toUpperCase()}</span></div>
+                        )}
+                      </div>
+                      <div class="ag-prod__body">
+                        <h3 class="ag-prod__name">{p.produs}</h3>
+                        {p.descriere && <p class="ag-prod__desc">{p.descriere}</p>}
+                        {(p.unitate || p.pret) && (
+                          <div class="ag-prod__meta">
+                            {p.unitate && <span class="ag-prod__unit">{p.unitate}</span>}
+                            {p.pret && <span class="ag-prod__price" title={cat.priceLabel}>{p.pret}</span>}
+                          </div>
+                        )}
+                        <a
+                          class="ei-btn ei-btn--primary ei-btn--sm ag-prod__order"
+                          href={waLink(orderMessage(p.produs, p.categorie))}
+                          target="_blank"
+                          rel="noopener"
+                          data-ga-vertical="whatsapp"
+                        >
+                          {cat.orderCta}
+                        </a>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mobile order chooser (accessible dialog; controlled by order.ts) -->
+  <div class="ag-sheet" data-order-sheet role="dialog" aria-modal="true" aria-labelledby="ag-sheet-title" aria-describedby="ag-sheet-body" hidden>
+    <div class="ag-sheet__backdrop" data-order-close></div>
+    <div class="ag-sheet__panel">
+      <button type="button" class="ag-sheet__close" data-order-close aria-label={c.order.close}>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+      </button>
+      <h2 id="ag-sheet-title">{c.order.sheetTitle}</h2>
+      <p id="ag-sheet-body" class="ag-sheet__body">{c.order.sheetBody}</p>
+      <p class="ag-sheet__product" data-order-product></p>
+      <div class="ag-sheet__actions">
+        <button type="button" class="ei-btn ei-btn--whatsapp" data-order-whatsapp>{c.order.whatsapp}</button>
+        <button type="button" class="ei-btn ei-btn--secondary" data-order-widget>{c.order.widget}</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" data-catalog-config is:inline set:html={JSON.stringify(catalogConfig)} />
+  <script type="application/json" data-catalog-fallback is:inline set:html={JSON.stringify(sampleProducts)} />
+  <script>
+    import '../scripts/catalog.ts'
+  </script>
+</BaseLayout>
+
+<style>
+  .ag-catalog {
+    padding-block: clamp(2.5rem, 2rem + 4vw, 5rem);
+  }
+  .ag-catalog__head {
+    max-width: 62ch;
+    margin-bottom: 2rem;
+  }
+  .ag-catalog__head h1 {
+    margin-top: 0.7rem;
+  }
+  .ag-catalog__head .ei-lead {
+    margin-top: 1rem;
+  }
+  .ag-catalog__note {
+    margin: 0 0 1.5rem;
+    padding: 0.7rem 1rem;
+    border: 1px dashed var(--ei-gold-strong);
+    border-radius: var(--ei-radius-sm);
+    background: var(--ei-gold-soft);
+    color: var(--ei-ink-soft);
+    font-size: 0.86rem;
+  }
+
+  /* Filter chips */
+  .ag-catalog__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-bottom: 2rem;
+  }
+  .ag-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5em 1em;
+    border: 1px solid var(--ei-hairline-strong);
+    border-radius: var(--ei-radius-pill);
+    background: var(--ei-surface);
+    color: var(--ei-ink-soft);
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s var(--ei-ease), background 0.2s var(--ei-ease), color 0.2s var(--ei-ease), transform 0.15s var(--ei-ease-out);
+  }
+  .ag-chip:hover {
+    border-color: var(--ei-accent);
+    transform: translateY(-1px);
+  }
+  .ag-chip.is-active {
+    background: var(--ei-accent-soft);
+    border-color: var(--ei-accent);
+    color: var(--ei-accent-strong);
+    font-weight: 600;
+  }
+
+  /* Status (loading / empty / error) */
+  .ag-catalog__status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 2.5rem 0;
+    color: var(--ei-muted);
+  }
+  .ag-catalog__status[hidden] {
+    display: none;
+  }
+  .ag-catalog__status.is-loading {
+    color: var(--ei-faint);
+  }
+  .ag-catalog__status.is-error p {
+    color: var(--ei-ink-soft);
+  }
+
+  /* Category sections + product grid */
+  .ag-cat {
+    margin-bottom: clamp(2rem, 1.4rem + 2vw, 3rem);
+  }
+  .ag-cat[hidden] {
+    display: none;
+  }
+  .ag-cat__title {
+    font-size: clamp(1.2rem, 1.05rem + 0.6vw, 1.5rem);
+    margin-bottom: 1.1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--ei-hairline);
+  }
+  .ag-prod-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .ag-prod {
+    display: flex;
+    flex-direction: column;
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-lg);
+    box-shadow: var(--ei-shadow-sm);
+    overflow: hidden;
+    transition: transform 0.3s var(--ei-ease-out), box-shadow 0.3s var(--ei-ease), border-color 0.3s var(--ei-ease);
+  }
+  .ag-prod:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--ei-shadow-lg);
+    border-color: var(--ei-accent);
+  }
+  .ag-prod__media {
+    aspect-ratio: 4 / 3;
+    background: var(--ei-ground-2);
+    border-bottom: 1px solid var(--ei-hairline);
+  }
+  .ag-prod__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .ag-prod__ph {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(120% 120% at 30% 20%, var(--ei-accent-soft), transparent 70%), var(--ei-ground-2);
+  }
+  .ag-prod__ph span {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--ei-accent-text);
+    opacity: 0.7;
+  }
+  .ag-prod__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.1rem 1.2rem 1.3rem;
+    flex: 1;
+  }
+  .ag-prod__name {
+    font-size: 1.08rem;
+  }
+  .ag-prod__desc {
+    color: var(--ei-muted);
+    font-size: 0.9rem;
+    text-wrap: pretty;
+  }
+  .ag-prod__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.1rem;
+  }
+  .ag-prod__unit {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ei-faint);
+    padding: 0.2em 0.6em;
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-pill);
+  }
+  .ag-prod__price {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ei-accent-text);
+  }
+  .ag-prod__order {
+    margin-top: auto;
+    align-self: flex-start;
+  }
+
+  /* Order chooser sheet */
+  .ag-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .ag-sheet[hidden] {
+    display: none;
+  }
+  .ag-sheet__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 20, 22, 0.55);
+    opacity: 0;
+    transition: opacity 0.25s var(--ei-ease);
+  }
+  .ag-sheet.is-open .ag-sheet__backdrop {
+    opacity: 1;
+  }
+  .ag-sheet__panel {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    margin: 0 0.75rem 0.75rem;
+    padding: 1.6rem 1.5rem 1.8rem;
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline-strong);
+    border-radius: var(--ei-radius-lg);
+    box-shadow: var(--ei-shadow-lg);
+    transform: translateY(16px);
+    opacity: 0;
+    transition: transform 0.28s var(--ei-ease-out), opacity 0.2s var(--ei-ease);
+  }
+  .ag-sheet.is-open .ag-sheet__panel {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .ag-sheet__panel h2 {
+    font-size: 1.25rem;
+    padding-right: 2rem;
+  }
+  .ag-sheet__body {
+    margin-top: 0.5rem;
+    color: var(--ei-muted);
+    font-size: 0.94rem;
+  }
+  .ag-sheet__product {
+    margin-top: 0.9rem;
+    padding: 0.6rem 0.9rem;
+    background: var(--ei-accent-soft);
+    border-radius: var(--ei-radius-sm);
+    color: var(--ei-accent-strong);
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  .ag-sheet__product:empty {
+    display: none;
+  }
+  .ag-sheet__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 1.3rem;
+  }
+  .ag-sheet__actions :global(.ei-btn) {
+    width: 100%;
+  }
+  .ag-sheet__close {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    display: inline-flex;
+    padding: 0.4rem;
+    border: none;
+    background: transparent;
+    color: var(--ei-muted);
+    cursor: pointer;
+    border-radius: var(--ei-radius-xs);
+  }
+  .ag-sheet__close:hover {
+    color: var(--ei-ink);
+  }
+
+  @media (min-width: 640px) {
+    .ag-sheet {
+      align-items: center;
+    }
+    .ag-sheet__panel {
+      margin-bottom: 0;
+      transform: translateY(0) scale(0.96);
+    }
+    .ag-sheet.is-open .ag-sheet__panel {
+      transform: translateY(0) scale(1);
+    }
+    .ag-sheet__actions {
+      flex-direction: row;
+    }
+  }
+</style>

@@ -1,0 +1,45 @@
+---
+/**
+ * LangToggle — links to the equivalent page in the other locale, computed at
+ * build time from the current pathname so it always lands on the same page.
+ */
+import type { Locale } from '../i18n/ui'
+import { switchLocalePath } from '../i18n/utils'
+const { locale } = Astro.props as { locale: Locale }
+const pathname = Astro.url.pathname
+const roHref = switchLocalePath(pathname, 'ro')
+const enHref = switchLocalePath(pathname, 'en')
+---
+
+<div class="ei-lang" role="group" aria-label="Language">
+  <a href={roHref} class={`ei-lang__opt ${locale === 'ro' ? 'is-active' : ''}`} hreflang="ro" aria-current={locale === 'ro' ? 'true' : undefined}>RO</a>
+  <span class="ei-lang__sep" aria-hidden="true">/</span>
+  <a href={enHref} class={`ei-lang__opt ${locale === 'en' ? 'is-active' : ''}`} hreflang="en" aria-current={locale === 'en' ? 'true' : undefined}>EN</a>
+</div>
+
+<style>
+  .ei-lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ei-faint);
+  }
+  .ei-lang__opt {
+    padding: 0.2em 0.35em;
+    border-radius: var(--ei-radius-xs);
+    color: var(--ei-muted);
+    transition: color 0.2s var(--ei-ease);
+  }
+  .ei-lang__opt:hover {
+    color: var(--ei-accent);
+  }
+  .ei-lang__opt.is-active {
+    color: var(--ei-accent-strong);
+  }
+  .ei-lang__sep {
+    opacity: 0.5;
+  }
+</style>

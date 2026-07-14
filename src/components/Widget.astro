@@ -1,0 +1,43 @@
+---
+/**
+ * Widget — the Euro-Intermed AI chat widget embed, configured for Angrosist.
+ * Origin + visibility come from env (WIDGET_BASE_URL / WIDGET_ENABLED); nothing
+ * is hardcoded. When WIDGET_ENABLED=false the component renders nothing.
+ *
+ * The backend API URL is baked into widget.js at build time (frontend's
+ * VITE_API_URL) — we deliberately do NOT pass apiUrl here so that single source
+ * of truth is preserved. Vertical "angrosist" + intent "buy" put the agent
+ * straight into the buyer/sourcing flow.
+ *
+ * The widget also exposes `window.AngrosistChat.open({ message, vertical, intent })`
+ * which the Produse "Comandă" flow calls to launch the chat with a prefilled
+ * message (feature-detected in src/scripts/order.ts).
+ */
+import type { Locale } from '../i18n/ui'
+import { widgetEnabled, widgetBaseUrl } from '../lib/config'
+import { localizePath } from '../i18n/utils'
+const { locale } = Astro.props as { locale: Locale }
+const privacyUrl = localizePath('/confidentialitate', locale)
+---
+
+{
+  widgetEnabled && (
+    <>
+      <script is:inline src={`${widgetBaseUrl}/widget.js`} defer />
+      <script is:inline define:vars={{ lang: locale, privacyUrl }}>
+        {`
+        window.addEventListener('DOMContentLoaded', function () {
+          if (!window.AngrosistChat) return;
+          // No containerId → floating launcher button (bottom-right).
+          window.AngrosistChat.init({
+            vertical: 'angrosist',
+            intent: 'buy',
+            lang: lang,
+            privacyUrl: privacyUrl
+          });
+        });
+      `}
+      </script>
+    </>
+  )
+}
