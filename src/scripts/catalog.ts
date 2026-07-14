@@ -3,7 +3,7 @@
  *
  * Reads a small config blob + the bundled sample fallback from the page, fetches
  * the live sheet (CSV/JSON) from PUBLIC_PRODUCTS_URL at runtime, parses it, groups
- * by category, renders responsive cards with a category filter, and wires each
+ * by category, renders a professional TABLE with a category filter, and wires each
  * "Comandă" button into the device-aware order flow (src/scripts/order.ts).
  *
  * States: loading → (live | empty | error) with a graceful sample fallback when no
@@ -28,8 +28,16 @@ interface CatalogStrings {
   sampleNote: string
   orderCta: string
   priceLabel: string
-  unitLabel: string
   imageAlt: string
+  headImage: string
+  headProduct: string
+  headCategory: string
+  headDesc: string
+  headUnit: string
+  headPrice: string
+  headOrder: string
+  priceEmpty: string
+  results: string
 }
 interface CatalogConfig {
   productsUrl: string
@@ -49,10 +57,10 @@ function readJson<T>(selector: string): T | null {
   }
 }
 
-/** Safe accent-tinted placeholder (product initial) when a row has no image. */
-function placeholder(name: string): HTMLElement {
+/** Small accent-tinted thumbnail (product initial) when a row has no image. */
+function thumbPlaceholder(name: string): HTMLElement {
   const box = document.createElement('div')
-  box.className = 'ag-prod__ph'
+  box.className = 'ag-thumb ag-thumb--ph'
   box.setAttribute('aria-hidden', 'true')
   const span = document.createElement('span')
   span.textContent = (name.trim()[0] || '·').toUpperCase()
@@ -60,74 +68,76 @@ function placeholder(name: string): HTMLElement {
   return box
 }
 
-function media(p: Product, alt: string): HTMLElement {
-  const wrap = document.createElement('div')
-  wrap.className = 'ag-prod__media'
+function thumb(p: Product): HTMLElement {
   const src = p.imagine.trim()
   if (/^https?:\/\//i.test(src)) {
     const img = document.createElement('img')
+    img.className = 'ag-thumb'
     img.src = src
-    img.alt = p.produs || alt
+    img.alt = p.produs
     img.loading = 'lazy'
     img.decoding = 'async'
+    img.width = 52
+    img.height = 52
     img.addEventListener('error', () => {
-      wrap.replaceChildren(placeholder(p.produs))
+      img.replaceWith(thumbPlaceholder(p.produs))
     })
-    wrap.appendChild(img)
-  } else {
-    wrap.appendChild(placeholder(p.produs))
+    return img
   }
-  return wrap
+  return thumbPlaceholder(p.produs)
 }
 
-function card(p: Product, cfg: CatalogConfig, onOrder: (p: Product) => void): HTMLElement {
+function td(label: string, className: string): HTMLTableCellElement {
+  const cell = document.createElement('td')
+  cell.className = className
+  if (label) cell.dataset.label = label
+  return cell
+}
+
+function row(p: Product, cfg: CatalogConfig, onOrder: (p: Product) => void): HTMLTableRowElement {
   const s = cfg.strings
-  const el = document.createElement('article')
-  el.className = 'ag-prod'
+  const tr = document.createElement('tr')
+  tr.className = 'ag-row'
+  tr.dataset.category = p.categorie || '—'
 
-  el.appendChild(media(p, s.imageAlt))
+  const imgCell = td(s.headImage, 'ag-td ag-td--img')
+  imgCell.appendChild(thumb(p))
+  tr.appendChild(imgCell)
 
-  const body = document.createElement('div')
-  body.className = 'ag-prod__body'
+  const nameCell = td(s.headProduct, 'ag-td ag-td--name')
+  const name = document.createElement('span')
+  name.className = 'ag-row__name'
+  name.textContent = p.produs
+  nameCell.appendChild(name)
+  tr.appendChild(nameCell)
 
-  const h = document.createElement('h3')
-  h.className = 'ag-prod__name'
-  h.textContent = p.produs
-  body.appendChild(h)
+  const catCell = td(s.headCategory, 'ag-td ag-td--cat')
+  catCell.textContent = p.categorie || '—'
+  tr.appendChild(catCell)
 
-  if (p.descriere) {
-    const desc = document.createElement('p')
-    desc.className = 'ag-prod__desc'
-    desc.textContent = p.descriere
-    body.appendChild(desc)
-  }
+  const descCell = td(s.headDesc, 'ag-td ag-td--desc')
+  descCell.textContent = p.descriere
+  tr.appendChild(descCell)
 
-  const meta = document.createElement('div')
-  meta.className = 'ag-prod__meta'
-  if (p.unitate) {
-    const u = document.createElement('span')
-    u.className = 'ag-prod__unit'
-    u.textContent = p.unitate
-    meta.appendChild(u)
-  }
-  if (p.pret) {
-    const pr = document.createElement('span')
-    pr.className = 'ag-prod__price'
-    pr.title = s.priceLabel
-    pr.textContent = p.pret
-    meta.appendChild(pr)
-  }
-  if (meta.childElementCount) body.appendChild(meta)
+  const unitCell = td(s.headUnit, 'ag-td ag-td--unit')
+  unitCell.textContent = p.unitate || s.priceEmpty
+  tr.appendChild(unitCell)
 
+  const priceCell = td(s.headPrice, 'ag-td ag-td--price')
+  priceCell.textContent = p.pret || s.priceEmpty
+  if (p.pret) priceCell.title = s.priceLabel
+  tr.appendChild(priceCell)
+
+  const orderCell = td('', 'ag-td ag-td--order')
   const btn = document.createElement('button')
   btn.type = 'button'
-  btn.className = 'ei-btn ei-btn--primary ei-btn--sm ag-prod__order'
+  btn.className = 'ei-btn ei-btn--primary ei-btn--sm ag-row__order'
   btn.textContent = s.orderCta
   btn.addEventListener('click', () => onOrder(p))
-  body.appendChild(btn)
+  orderCell.appendChild(btn)
+  tr.appendChild(orderCell)
 
-  el.appendChild(body)
-  return el
+  return tr
 }
 
 function buildMessage(template: string, p: Product): string {
@@ -174,7 +184,9 @@ function initCatalog(): void {
 
   const statusEl = root.querySelector<HTMLElement>('[data-catalog-status]')!
   const filtersEl = root.querySelector<HTMLElement>('[data-catalog-filters]')!
-  const gridEl = root.querySelector<HTMLElement>('[data-catalog-grid]')!
+  const countEl = root.querySelector<HTMLElement>('[data-catalog-count]')!
+  const wrapEl = root.querySelector<HTMLElement>('[data-catalog-table-wrap]')!
+  const tbodyEl = root.querySelector<HTMLElement>('[data-catalog-tbody]')!
   const noteEl = root.querySelector<HTMLElement>('[data-catalog-note]')!
   const sheetEl = document.querySelector<HTMLElement>('[data-order-sheet]')
   const sheet = sheetEl ? new OrderSheet(sheetEl) : null
@@ -189,6 +201,11 @@ function initCatalog(): void {
       },
       sheet,
     )
+  }
+
+  const updateCount = () => {
+    const visible = tbodyEl.querySelectorAll<HTMLElement>('.ag-row:not([hidden])').length
+    countEl.textContent = `${visible} ${cfg.strings.results}`
   }
 
   const setStatus = (msg: string, kind: 'loading' | 'error' | 'empty' | '', withRetry = false) => {
@@ -213,26 +230,17 @@ function initCatalog(): void {
     setStatus('', '')
     noteEl.hidden = !sample
     renderFilters(filtersEl, groups, cfg.strings.filterAll, (cat) => {
-      gridEl.querySelectorAll<HTMLElement>('.ag-cat').forEach((sec) => {
-        sec.hidden = cat != null && sec.dataset.category !== cat
+      tbodyEl.querySelectorAll<HTMLElement>('.ag-row').forEach((tr) => {
+        tr.hidden = cat != null && tr.dataset.category !== cat
       })
+      updateCount()
     })
     filtersEl.hidden = false
-    gridEl.replaceChildren()
-    groups.forEach((g) => {
-      const sec = document.createElement('section')
-      sec.className = 'ag-cat'
-      sec.dataset.category = g.categorie
-      const head = document.createElement('h2')
-      head.className = 'ag-cat__title'
-      head.textContent = g.categorie
-      sec.appendChild(head)
-      const grid = document.createElement('div')
-      grid.className = 'ag-prod-grid'
-      g.items.forEach((p) => grid.appendChild(card(p, cfg, onOrder)))
-      sec.appendChild(grid)
-      gridEl.appendChild(sec)
-    })
+    tbodyEl.replaceChildren()
+    groups.forEach((g) => g.items.forEach((p) => tbodyEl.appendChild(row(p, cfg, onOrder))))
+    wrapEl.hidden = false
+    countEl.hidden = false
+    updateCount()
   }
 
   const showFallback = () => {
@@ -243,8 +251,10 @@ function initCatalog(): void {
 
   const load = async () => {
     filtersEl.hidden = true
+    countEl.hidden = true
+    wrapEl.hidden = true
     noteEl.hidden = true
-    gridEl.replaceChildren()
+    tbodyEl.replaceChildren()
 
     if (!cfg.productsUrl) {
       showFallback()
@@ -253,7 +263,10 @@ function initCatalog(): void {
 
     setStatus(cfg.strings.loading, 'loading')
     try {
-      const res = await fetch(cfg.productsUrl, { headers: { Accept: 'text/csv, application/json' } })
+      const res = await fetch(cfg.productsUrl, {
+        headers: { Accept: 'text/csv, application/json' },
+        cache: 'default',
+      })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const text = await res.text()
       const groups = groupByCategory(parseProducts(text))

@@ -104,26 +104,30 @@
   --ei-eyebrow-band: #c9a84c;
 }
 
-/* ---- ACCENT LAYER: ANGROSIST (teal-blue + azure), LIGHT --------------- */
+/* ---- ACCENT LAYER: ANGROSIST (teal-CYAN + azure), LIGHT ---------------
+   Deliberately shifted OFF Euro-Intermed's forest green to an unmistakable
+   teal-cyan/blue identity. Every pairing below is WCAG-AA verified on the pale
+   ground (white-on-accent 5.49, accent-text 5.49, focus 3.42, gold-text 6.74;
+   eyebrow-band on the teal band 6.32). */
 :root[data-vertical='angrosist'] {
-  --ei-accent: #0e7c86;
-  --ei-accent-strong: #0a616a;
-  --ei-accent-text: #0a616a;
-  --ei-accent-soft: rgba(14, 124, 134, 0.1);
+  --ei-accent: #0a7290;
+  --ei-accent-strong: #075e78;
+  --ei-accent-text: #086f87;
+  --ei-accent-soft: rgba(10, 114, 144, 0.1);
   --ei-accent-ink: #ffffff;
-  --ei-accent-hover: #0a616a;
-  --ei-glow: rgba(14, 124, 134, 0.16);
-  --ei-focus: #128a97;
+  --ei-accent-hover: #075e78;
+  --ei-glow: rgba(10, 114, 144, 0.16);
+  --ei-focus: #0f93b2;
 
   --ei-gold: #2e7db5;
   --ei-gold-strong: #1c5c8c;
   --ei-gold-text: #1c5c8c;
   --ei-gold-soft: rgba(46, 125, 181, 0.16);
 
-  --ei-hairline: rgba(14, 124, 134, 0.16);
-  --ei-hairline-strong: rgba(14, 124, 134, 0.26);
+  --ei-hairline: rgba(10, 114, 144, 0.16);
+  --ei-hairline-strong: rgba(10, 114, 144, 0.26);
 
-  --ei-surface-contrast: #08262b; /* dark teal band */
+  --ei-surface-contrast: #0b2e3a; /* clearly teal-cyan dark band (not near-black-green) */
   --ei-on-contrast-muted: #a3bcc4;
   --ei-eyebrow-band: #6fb4de;
 }
@@ -185,14 +189,14 @@
     --ei-hairline-strong: rgba(201, 168, 76, 0.28);
   }
   :root:not([data-theme='light'])[data-vertical='angrosist'] {
-    --ei-accent: #2bb0bd;
-    --ei-accent-strong: #4cc6d1;
-    --ei-accent-text: #4cc6d1;
-    --ei-accent-soft: rgba(43, 176, 189, 0.14);
-    --ei-accent-ink: #04191b;
-    --ei-accent-hover: #4cc6d1;
-    --ei-glow: rgba(43, 176, 189, 0.2);
-    --ei-focus: #4cc6d1;
+    --ei-accent: #3ab6ce;
+    --ei-accent-strong: #5bc7da;
+    --ei-accent-text: #4fc3d8;
+    --ei-accent-soft: rgba(58, 182, 206, 0.14);
+    --ei-accent-ink: #04191d;
+    --ei-accent-hover: #5bc7da;
+    --ei-glow: rgba(58, 182, 206, 0.2);
+    --ei-focus: #5bc7da;
     --ei-gold: #6fb4de;
     --ei-gold-strong: #8fc6e6;
     --ei-gold-text: #8fc6e6;
@@ -248,14 +252,14 @@
   --ei-hairline-strong: rgba(201, 168, 76, 0.28);
 }
 :root[data-theme='dark'][data-vertical='angrosist'] {
-  --ei-accent: #2bb0bd;
-  --ei-accent-strong: #4cc6d1;
-  --ei-accent-text: #4cc6d1;
-  --ei-accent-soft: rgba(43, 176, 189, 0.14);
-  --ei-accent-ink: #04191b;
-  --ei-accent-hover: #4cc6d1;
-  --ei-glow: rgba(43, 176, 189, 0.2);
-  --ei-focus: #4cc6d1;
+  --ei-accent: #3ab6ce;
+  --ei-accent-strong: #5bc7da;
+  --ei-accent-text: #4fc3d8;
+  --ei-accent-soft: rgba(58, 182, 206, 0.14);
+  --ei-accent-ink: #04191d;
+  --ei-accent-hover: #5bc7da;
+  --ei-glow: rgba(58, 182, 206, 0.2);
+  --ei-focus: #5bc7da;
   --ei-gold: #6fb4de;
   --ei-gold-strong: #8fc6e6;
   --ei-gold-text: #8fc6e6;

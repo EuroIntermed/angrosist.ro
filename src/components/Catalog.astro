@@ -1,14 +1,18 @@
 ---
 /**
  * Catalog — the "Produse" page. A prerendered shell (intro, category chips and a
- * sample product skeleton for SEO + no-JS) that the client runtime
+ * sample product TABLE for SEO + no-JS) that the client runtime
  * (src/scripts/catalog.ts) upgrades: it fetches the live sheet from
- * PUBLIC_PRODUCTS_URL, groups by category, renders cards, and wires each
+ * PUBLIC_PRODUCTS_URL, groups by category, rebuilds the table body, and wires each
  * "Comandă" button into the device-aware order flow.
  *
- * Progressive enhancement: without JS, the sample cards' "Comandă" is a real
+ * Progressive enhancement: without JS, each sample row's "Comandă" is a real
  * wa.me link; with JS the button becomes the device-aware widget/WhatsApp chooser.
  * SEO: page shell + category names + a JSON-LD ItemList are emitted at build time.
+ *
+ * Layout: a real <table> styled through the shared design tokens (teal theme),
+ * wrapped in an overflow-x container so the page never scrolls sideways; on phones
+ * each row collapses into a stacked "label: value" card (CSS, data-label driven).
  */
 import type { Locale } from '../i18n/ui'
 import { t } from '../i18n/utils'
@@ -22,8 +26,9 @@ const cat = c.catalog
 
 // Build-time skeleton + SEO content from the bundled sample.
 const groups = groupByCategory(sampleProducts)
+const sampleCount = groups.reduce((n, g) => n + g.items.length, 0)
 
-// Prefilled order message for the no-JS wa.me fallback on each sample card.
+// Prefilled order message for the no-JS wa.me fallback on each sample row.
 const orderMessage = (produs: string, categorie: string) =>
   c.order.message.replace('{product}', produs).replace('{category}', categorie || '—')
 
@@ -42,8 +47,16 @@ const catalogConfig = {
     sampleNote: cat.sampleNote,
     orderCta: cat.orderCta,
     priceLabel: cat.priceLabel,
-    unitLabel: cat.unitLabel,
     imageAlt: cat.imageAlt,
+    headImage: cat.headImage,
+    headProduct: cat.headProduct,
+    headCategory: cat.headCategory,
+    headDesc: cat.headDesc,
+    headUnit: cat.headUnit,
+    headPrice: cat.headPrice,
+    headOrder: cat.headOrder,
+    priceEmpty: cat.priceEmpty,
+    results: cat.results,
   },
 }
 
@@ -67,6 +80,9 @@ const itemListJsonLd = {
     })),
 }
 const showSampleNote = !productsUrl
+
+// Flatten the sample groups into ordered rows for the SSR table body.
+const sampleRows = groups.flatMap((g) => g.items)
 ---
 
 <BaseLayout locale={locale} title={c.meta.produseTitle} description={c.meta.produseDescription}>
@@ -85,55 +101,63 @@ const showSampleNote = !productsUrl
       <div data-catalog-root>
         <p class="ag-catalog__note" data-catalog-note hidden={!showSampleNote}>{cat.sampleNote}</p>
 
-        <div class="ag-catalog__filters" role="tablist" aria-label={cat.filterLabel} data-catalog-filters>
-          <button type="button" class="ag-chip is-active" role="tab" aria-selected="true">{cat.filterAll}</button>
-          {groups.map((g) => (
-            <button type="button" class="ag-chip" role="tab" aria-selected="false">{g.categorie}</button>
-          ))}
+        <div class="ag-catalog__toolbar">
+          <div class="ag-catalog__filters" role="tablist" aria-label={cat.filterLabel} data-catalog-filters>
+            <button type="button" class="ag-chip is-active" role="tab" aria-selected="true">{cat.filterAll}</button>
+            {groups.map((g) => (
+              <button type="button" class="ag-chip" role="tab" aria-selected="false">{g.categorie}</button>
+            ))}
+          </div>
+          <p class="ag-catalog__count" data-catalog-count aria-live="polite">{sampleCount} {cat.results}</p>
         </div>
 
         <div class="ag-catalog__status" data-catalog-status hidden></div>
 
-        <div class="ag-catalog__grid" data-catalog-grid>
-          {
-            groups.map((g) => (
-              <section class="ag-cat" data-category={g.categorie}>
-                <h2 class="ag-cat__title">{g.categorie}</h2>
-                <div class="ag-prod-grid">
-                  {g.items.map((p) => (
-                    <article class="ag-prod">
-                      <div class="ag-prod__media">
-                        {/^https?:\/\//i.test(p.imagine) ? (
-                          <img src={p.imagine} alt={p.produs} loading="lazy" decoding="async" />
-                        ) : (
-                          <div class="ag-prod__ph" aria-hidden="true"><span>{(p.produs.trim()[0] || '·').toUpperCase()}</span></div>
-                        )}
-                      </div>
-                      <div class="ag-prod__body">
-                        <h3 class="ag-prod__name">{p.produs}</h3>
-                        {p.descriere && <p class="ag-prod__desc">{p.descriere}</p>}
-                        {(p.unitate || p.pret) && (
-                          <div class="ag-prod__meta">
-                            {p.unitate && <span class="ag-prod__unit">{p.unitate}</span>}
-                            {p.pret && <span class="ag-prod__price" title={cat.priceLabel}>{p.pret}</span>}
-                          </div>
-                        )}
-                        <a
-                          class="ei-btn ei-btn--primary ei-btn--sm ag-prod__order"
-                          href={waLink(orderMessage(p.produs, p.categorie))}
-                          target="_blank"
-                          rel="noopener"
-                          data-ga-vertical="whatsapp"
-                        >
-                          {cat.orderCta}
-                        </a>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            ))
-          }
+        <div class="ag-table-wrap" data-catalog-table-wrap>
+          <table class="ag-table">
+            <thead>
+              <tr>
+                <th scope="col" class="ag-th ag-th--img">{cat.headImage}</th>
+                <th scope="col" class="ag-th ag-th--name">{cat.headProduct}</th>
+                <th scope="col" class="ag-th ag-th--cat">{cat.headCategory}</th>
+                <th scope="col" class="ag-th ag-th--desc">{cat.headDesc}</th>
+                <th scope="col" class="ag-th ag-th--unit">{cat.headUnit}</th>
+                <th scope="col" class="ag-th ag-th--price">{cat.headPrice}</th>
+                <th scope="col" class="ag-th ag-th--order"><span class="ei-sr-only">{cat.headOrder}</span></th>
+              </tr>
+            </thead>
+            <tbody data-catalog-tbody>
+              {
+                sampleRows.map((p) => (
+                  <tr class="ag-row" data-category={p.categorie || '—'}>
+                    <td class="ag-td ag-td--img" data-label={cat.headImage}>
+                      {/^https?:\/\//i.test(p.imagine) ? (
+                        <img class="ag-thumb" src={p.imagine} alt={p.produs} loading="lazy" decoding="async" width="52" height="52" />
+                      ) : (
+                        <div class="ag-thumb ag-thumb--ph" aria-hidden="true"><span>{(p.produs.trim()[0] || '·').toUpperCase()}</span></div>
+                      )}
+                    </td>
+                    <td class="ag-td ag-td--name" data-label={cat.headProduct}><span class="ag-row__name">{p.produs}</span></td>
+                    <td class="ag-td ag-td--cat" data-label={cat.headCategory}>{p.categorie || '—'}</td>
+                    <td class="ag-td ag-td--desc" data-label={cat.headDesc}>{p.descriere}</td>
+                    <td class="ag-td ag-td--unit" data-label={cat.headUnit}>{p.unitate || cat.priceEmpty}</td>
+                    <td class="ag-td ag-td--price" data-label={cat.headPrice} title={p.pret ? cat.priceLabel : undefined}>{p.pret || cat.priceEmpty}</td>
+                    <td class="ag-td ag-td--order">
+                      <a
+                        class="ei-btn ei-btn--primary ei-btn--sm ag-row__order"
+                        href={waLink(orderMessage(p.produs, p.categorie))}
+                        target="_blank"
+                        rel="noopener"
+                        data-ga-vertical="whatsapp"
+                      >
+                        {cat.orderCta}
+                      </a>
+                    </td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -187,12 +211,19 @@ const showSampleNote = !productsUrl
     font-size: 0.86rem;
   }
 
-  /* Filter chips */
+  /* Toolbar: filter chips + result count */
+  .ag-catalog__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    margin-bottom: 1.4rem;
+  }
   .ag-catalog__filters {
     display: flex;
     flex-wrap: wrap;
     gap: 0.55rem;
-    margin-bottom: 2rem;
   }
   .ag-chip {
     display: inline-flex;
@@ -217,6 +248,16 @@ const showSampleNote = !productsUrl
     color: var(--ei-accent-strong);
     font-weight: 600;
   }
+  .ag-catalog__count {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--ei-faint);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .ag-catalog__count[hidden] {
+    display: none;
+  }
 
   /* Status (loading / empty / error) */
   .ag-catalog__status {
@@ -237,104 +278,220 @@ const showSampleNote = !productsUrl
     color: var(--ei-ink-soft);
   }
 
-  /* Category sections + product grid */
-  .ag-cat {
-    margin-bottom: clamp(2rem, 1.4rem + 2vw, 3rem);
-  }
-  .ag-cat[hidden] {
-    display: none;
-  }
-  .ag-cat__title {
-    font-size: clamp(1.2rem, 1.05rem + 0.6vw, 1.5rem);
-    margin-bottom: 1.1rem;
-    padding-bottom: 0.6rem;
-    border-bottom: 1px solid var(--ei-hairline);
-  }
-  .ag-prod-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: 1.25rem;
-  }
-
-  .ag-prod {
-    display: flex;
-    flex-direction: column;
-    background: var(--ei-surface);
+  /* ---- Table ---------------------------------------------------------- */
+  .ag-table-wrap {
+    overflow-x: auto;
     border: 1px solid var(--ei-hairline);
     border-radius: var(--ei-radius-lg);
+    background: var(--ei-surface);
     box-shadow: var(--ei-shadow-sm);
-    overflow: hidden;
-    transition: transform 0.3s var(--ei-ease-out), box-shadow 0.3s var(--ei-ease), border-color 0.3s var(--ei-ease);
+    -webkit-overflow-scrolling: touch;
   }
-  .ag-prod:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--ei-shadow-lg);
-    border-color: var(--ei-accent);
+  .ag-table-wrap[hidden] {
+    display: none;
   }
-  .ag-prod__media {
-    aspect-ratio: 4 / 3;
-    background: var(--ei-ground-2);
+  .ag-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.94rem;
+    min-width: 720px;
+  }
+  .ag-th {
+    text-align: left;
+    padding: 0.9rem 1rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ei-faint);
+    background: var(--ei-surface-raised);
+    border-bottom: 1px solid var(--ei-hairline-strong);
+    white-space: nowrap;
+  }
+  .ag-th--img {
+    width: 68px;
+  }
+  .ag-th--price {
+    text-align: right;
+  }
+  .ag-th--order {
+    width: 1%;
+  }
+
+  .ag-row {
     border-bottom: 1px solid var(--ei-hairline);
+    transition: background 0.15s var(--ei-ease);
   }
-  .ag-prod__media img {
-    width: 100%;
-    height: 100%;
+  .ag-row:last-child {
+    border-bottom: 0;
+  }
+  .ag-row:hover {
+    background: var(--ei-accent-soft);
+  }
+  .ag-row[hidden] {
+    display: none;
+  }
+  .ag-td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+    color: var(--ei-ink-soft);
+  }
+  .ag-td--img {
+    width: 68px;
+  }
+  .ag-row__name {
+    font-weight: 600;
+    color: var(--ei-ink);
+  }
+  .ag-td--cat {
+    color: var(--ei-muted);
+    white-space: nowrap;
+  }
+  .ag-td--desc {
+    color: var(--ei-muted);
+    max-width: 34ch;
+    text-wrap: pretty;
+  }
+  .ag-td--unit {
+    color: var(--ei-muted);
+    white-space: nowrap;
+  }
+  .ag-td--price {
+    text-align: right;
+    font-weight: 700;
+    color: var(--ei-accent-text);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .ag-td--order {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* Thumbnail */
+  .ag-thumb {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--ei-radius-sm);
     object-fit: cover;
+    border: 1px solid var(--ei-hairline);
+    background: var(--ei-ground-2);
+    display: block;
   }
-  .ag-prod__ph {
-    width: 100%;
-    height: 100%;
+  .ag-thumb--ph {
     display: grid;
     place-items: center;
     background: radial-gradient(120% 120% at 30% 20%, var(--ei-accent-soft), transparent 70%), var(--ei-ground-2);
   }
-  .ag-prod__ph span {
-    font-size: 2.4rem;
+  .ag-thumb--ph span {
+    font-size: 1.35rem;
     font-weight: 700;
     color: var(--ei-accent-text);
-    opacity: 0.7;
-  }
-  .ag-prod__body {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1.1rem 1.2rem 1.3rem;
-    flex: 1;
-  }
-  .ag-prod__name {
-    font-size: 1.08rem;
-  }
-  .ag-prod__desc {
-    color: var(--ei-muted);
-    font-size: 0.9rem;
-    text-wrap: pretty;
-  }
-  .ag-prod__meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.1rem;
-  }
-  .ag-prod__unit {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--ei-faint);
-    padding: 0.2em 0.6em;
-    border: 1px solid var(--ei-hairline);
-    border-radius: var(--ei-radius-pill);
-  }
-  .ag-prod__price {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--ei-accent-text);
-  }
-  .ag-prod__order {
-    margin-top: auto;
-    align-self: flex-start;
+    opacity: 0.75;
   }
 
-  /* Order chooser sheet */
+  /* ---- Mobile: collapse each row into a stacked label/value card ------ */
+  @media (max-width: 720px) {
+    .ag-table-wrap {
+      overflow-x: visible;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+    }
+    .ag-table {
+      min-width: 0;
+    }
+    .ag-table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .ag-table,
+    .ag-table tbody,
+    .ag-row,
+    .ag-td {
+      display: block;
+      width: auto;
+    }
+    .ag-row {
+      position: relative;
+      margin-bottom: 1rem;
+      padding: 1rem 1rem 1.1rem;
+      border: 1px solid var(--ei-hairline);
+      border-radius: var(--ei-radius-lg);
+      background: var(--ei-surface);
+      box-shadow: var(--ei-shadow-sm);
+    }
+    .ag-row:hover {
+      background: var(--ei-surface);
+    }
+    .ag-td {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.4rem 0;
+      text-align: right;
+    }
+    .ag-td[data-label]::before {
+      content: attr(data-label);
+      flex: 0 0 auto;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ei-faint);
+      text-align: left;
+    }
+    .ag-td--desc,
+    .ag-td--cat,
+    .ag-td--unit,
+    .ag-td--price {
+      white-space: normal;
+      max-width: none;
+    }
+    /* Image + name form the card header */
+    .ag-td--img {
+      justify-content: flex-start;
+      padding-top: 0;
+      padding-bottom: 0.6rem;
+    }
+    .ag-td--img::before {
+      display: none;
+    }
+    .ag-td--name {
+      padding-top: 0;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--ei-hairline);
+    }
+    .ag-td--name::before {
+      display: none;
+    }
+    .ag-row__name {
+      font-size: 1.05rem;
+    }
+    .ag-td--price {
+      text-align: right;
+    }
+    .ag-td--order {
+      display: block;
+      padding-top: 0.8rem;
+      text-align: left;
+    }
+    .ag-td--order .ag-row__order {
+      display: flex;
+      width: 100%;
+    }
+  }
+
+  /* ---- Order chooser sheet -------------------------------------------- */
   .ag-sheet {
     position: fixed;
     inset: 0;
