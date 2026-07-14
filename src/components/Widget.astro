@@ -24,18 +24,33 @@ const privacyUrl = localizePath('/confidentialitate', locale)
   widgetEnabled && (
     <>
       <script is:inline src={`${widgetBaseUrl}/widget.js`} defer />
-      <script is:inline define:vars={{ lang: locale, privacyUrl }}>
+      <script
+        is:inline
+        define:vars={{ lang: locale, privacyUrl, accent: '#0a7290', accentText: '#ffffff' }}
+      >
         {`
-        window.addEventListener('DOMContentLoaded', function () {
-          if (!window.AngrosistChat) return;
-          // No containerId → floating launcher button (bottom-right).
-          window.AngrosistChat.init({
+        // Poll for the deferred widget bundle instead of bailing on a single
+        // DOMContentLoaded check: widget.js loads with 'defer', so AngrosistChat
+        // may not exist yet when this inline script runs. Retry (up to ~10s) until
+        // init is available, then mount the floating launcher exactly once.
+        (function () {
+          var cfg = {
             vertical: 'angrosist',
             intent: 'buy',
             lang: lang,
-            privacyUrl: privacyUrl
-          });
-        });
+            privacyUrl: privacyUrl,
+            accent: accent,
+            accentText: accentText
+          };
+          var n = 0;
+          (function go() {
+            if (window.AngrosistChat && window.AngrosistChat.init) {
+              window.AngrosistChat.init(cfg);
+              return;
+            }
+            if (n++ < 200) setTimeout(go, 50);
+          })();
+        })();
       `}
       </script>
     </>
