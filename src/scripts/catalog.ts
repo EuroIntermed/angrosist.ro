@@ -242,7 +242,8 @@ function initCatalog(): void {
   const countEl = root.querySelector<HTMLElement>('[data-catalog-count]')!
   const wrapEl = root.querySelector<HTMLElement>('[data-catalog-table-wrap]')!
   const tbodyEl = root.querySelector<HTMLElement>('[data-catalog-tbody]')!
-  const noteEl = root.querySelector<HTMLElement>('[data-catalog-note]')!
+  // Nullable: the per-category page has no "sample note" element.
+  const noteEl = root.querySelector<HTMLElement>('[data-catalog-note]')
   const searchEl = root.querySelector<HTMLInputElement>('[data-catalog-search]')
   const selectAllEl = root.querySelector<HTMLInputElement>('[data-catalog-selectall]')
   const selBar = document.querySelector<HTMLElement>('[data-catalog-selbar]')
@@ -363,7 +364,7 @@ function initCatalog(): void {
 
   const render = (groups: CategoryGroup[], sample: boolean) => {
     setStatus('', '')
-    noteEl.hidden = !sample
+    if (noteEl) noteEl.hidden = !sample
     if (filtersEl) {
       if (cfg.category) {
         filtersEl.hidden = true
@@ -429,7 +430,7 @@ function initCatalog(): void {
     if (filtersEl) filtersEl.hidden = true
     countEl.hidden = true
     wrapEl.hidden = true
-    noteEl.hidden = true
+    if (noteEl) noteEl.hidden = true
     tbodyEl.replaceChildren()
 
     if (!cfg.productsUrl) {
