@@ -20,6 +20,8 @@ import { driveImage, normKey, parseCsv } from './products'
 
 export interface Category {
   categorie: string
+  /** English display name (optional column `categorie_en`); '' → falls back to RO. */
+  categorieEn: string
   slug: string
   imagine: string
   nrProduse: number
@@ -29,10 +31,16 @@ export interface Category {
 /** Canonical column keys → accepted header aliases (normalised via normKey). */
 const COLUMN_ALIASES: Record<keyof Category, string[]> = {
   categorie: ['categorie', 'category', 'nume', 'name', 'denumire'],
+  categorieEn: ['categorieen', 'categorieengleza', 'categoryen', 'nameen', 'denumireen', 'en', 'engleza'],
   slug: ['slug', 'url', 'cale', 'path'],
   nrProduse: ['nrproduse', 'nrprod', 'count', 'produse', 'numarproduse', 'nr'],
   imagine: ['imaginecategorie', 'imagine', 'image', 'img', 'poza', 'foto', 'photo', 'hero'],
   sursa: ['sursa', 'source', 'ref', 'link'],
+}
+
+/** The display name for a locale — EN falls back to the RO name when absent. */
+export function categoryName(c: Category, locale: 'ro' | 'en'): string {
+  return locale === 'en' && c.categorieEn ? c.categorieEn : c.categorie
 }
 
 /** Diacritic-insensitive, URL-safe slug from a display name (fallback only). */
@@ -86,6 +94,7 @@ export function parseCategories(raw: string): Category[] {
     seen.add(slug)
     out.push({
       categorie,
+      categorieEn: get('categorieEn'),
       slug,
       imagine: driveImage(get('imagine')),
       nrProduse: toNum(get('nrProduse')),
@@ -102,16 +111,16 @@ export function parseCategories(raw: string): Category[] {
  * public catalog photos (angrosist.ro uploads).
  */
 export const sampleCategories: Category[] = [
-  { categorie: 'Materii prime & auxiliare', slug: 'materii-prime-auxiliare', nrProduse: 222, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/Materii-prime-auxiliare-1.jpg', sursa: '' },
-  { categorie: 'Cereale & pseudocereale', slug: 'cereale-pseudocereale', nrProduse: 79, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/Cereale-Pseudocereale-2.jpg', sursa: '' },
-  { categorie: 'Făină & pudre', slug: 'faina-pudre', nrProduse: 28, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/faina.jpg', sursa: '' },
-  { categorie: 'Oleaginoase', slug: 'oleaginoase', nrProduse: 55, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/OLEAGINOASE-2.jpg', sursa: '' },
-  { categorie: 'Plante - ceai', slug: 'plante-ceai', nrProduse: 356, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/plante-2.jpg', sursa: '' },
-  { categorie: 'Condimente', slug: 'condimente', nrProduse: 180, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/Condimente-2.jpg', sursa: '' },
-  { categorie: 'Gluten free', slug: 'gluten-free', nrProduse: 88, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/gluten-free-1.jpg', sursa: '' },
-  { categorie: 'Fructe', slug: 'fructe', nrProduse: 86, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/Fructe-4.jpg', sursa: '' },
-  { categorie: 'Legume', slug: 'legume', nrProduse: 102, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/legume-e1720712466648.jpg', sursa: '' },
-  { categorie: 'Legume deshidratate', slug: 'legume-deshidratate', nrProduse: 48, imagine: 'https://angrosist.ro/wp-content/uploads/2025/02/categorie-leguma-deschidratate.webp', sursa: '' },
-  { categorie: 'Suplimente alimentare', slug: 'suplimente-alimentare', nrProduse: 196, imagine: 'https://angrosist.ro/wp-content/uploads/2024/12/suplimente-alimentare.webp', sursa: '' },
-  { categorie: 'Mâncare gata preparată', slug: 'mancare-gata-preparata', nrProduse: 21, imagine: 'https://angrosist.ro/wp-content/uploads/2025/01/ready-food-home-hero-image-2.webp', sursa: '' },
+  { categorie: 'Materii prime & auxiliare', categorieEn: 'Raw materials & auxiliaries', slug: 'materii-prime-auxiliare', nrProduse: 222, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/Materii-prime-auxiliare-1.jpg', sursa: '' },
+  { categorie: 'Cereale & pseudocereale', categorieEn: 'Cereals & pseudocereals', slug: 'cereale-pseudocereale', nrProduse: 79, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/Cereale-Pseudocereale-2.jpg', sursa: '' },
+  { categorie: 'Făină & pudre', categorieEn: 'Flours & powders', slug: 'faina-pudre', nrProduse: 28, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/faina.jpg', sursa: '' },
+  { categorie: 'Oleaginoase', categorieEn: 'Oilseeds & nuts', slug: 'oleaginoase', nrProduse: 55, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/OLEAGINOASE-2.jpg', sursa: '' },
+  { categorie: 'Plante - ceai', categorieEn: 'Herbs & tea', slug: 'plante-ceai', nrProduse: 356, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/plante-2.jpg', sursa: '' },
+  { categorie: 'Condimente', categorieEn: 'Spices', slug: 'condimente', nrProduse: 180, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/Condimente-2.jpg', sursa: '' },
+  { categorie: 'Gluten free', categorieEn: 'Gluten free', slug: 'gluten-free', nrProduse: 88, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/gluten-free-1.jpg', sursa: '' },
+  { categorie: 'Fructe', categorieEn: 'Fruits', slug: 'fructe', nrProduse: 86, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/Fructe-4.jpg', sursa: '' },
+  { categorie: 'Legume', categorieEn: 'Vegetables', slug: 'legume', nrProduse: 102, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/legume-e1720712466648.jpg', sursa: '' },
+  { categorie: 'Legume deshidratate', categorieEn: 'Dehydrated vegetables', slug: 'legume-deshidratate', nrProduse: 48, imagine: 'https://angrosist.ro/wp-content/uploads/2025/02/categorie-leguma-deschidratate.webp', sursa: '' },
+  { categorie: 'Suplimente alimentare', categorieEn: 'Food supplements', slug: 'suplimente-alimentare', nrProduse: 196, imagine: 'https://angrosist.ro/wp-content/uploads/2024/12/suplimente-alimentare.webp', sursa: '' },
+  { categorie: 'Mâncare gata preparată', categorieEn: 'Ready meals', slug: 'mancare-gata-preparata', nrProduse: 21, imagine: 'https://angrosist.ro/wp-content/uploads/2025/01/ready-food-home-hero-image-2.webp', sursa: '' },
 ]

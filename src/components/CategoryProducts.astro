@@ -12,6 +12,7 @@ import type { Locale } from '../i18n/ui'
 import { t } from '../i18n/utils'
 import { localizePath } from '../i18n/utils'
 import { waLink, productsUrl, whatsappNumber } from '../lib/config'
+import { categoryName } from '../lib/categories'
 import type { CategoryWithProducts } from '../lib/catalog-data'
 import BaseLayout from './BaseLayout.astro'
 import CatalogTableStyles from './CatalogTableStyles.astro'
@@ -25,18 +26,22 @@ const c = t(locale)
 const cat = c.catalog
 const rows = category.products
 
-const title = cat.categoryMetaTitle.replace('{category}', category.categorie)
+// Localised display name (EN falls back to RO). The RO `category.categorie` is
+// kept as the MATCH key (products are grouped by their RO category name).
+const displayName = categoryName(category, locale)
+
+const title = cat.categoryMetaTitle.replace('{category}', displayName)
 const description = cat.categoryMetaDescription
-  .replace('{category}', category.categorie)
+  .replace('{category}', displayName)
   .replace('{count}', String(category.count))
-const intro = cat.categoryIntro.replace('{category}', category.categorie)
+const intro = cat.categoryIntro.replace('{category}', displayName)
 const produseHref = localizePath('/produse', locale)
 
-// No-JS wa.me fallback — includes ALL the product info we have.
-const orderMessage = (p: { produs: string; categorie: string; unitate: string; descriere: string }) =>
+// No-JS wa.me fallback — includes ALL the product info we have (localised category).
+const orderMessage = (p: { produs: string; unitate: string; descriere: string }) =>
   c.order.message
     .replace('{product}', p.produs)
-    .replace('{category}', p.categorie || '—')
+    .replace('{category}', displayName)
     .replace('{unit}', p.unitate || '—')
     .replace('{details}', p.descriere || '—')
 
@@ -46,6 +51,7 @@ const catalogConfig = {
   waNumber: whatsappNumber,
   intent: 'buy',
   category: category.categorie,
+  categoryLabel: displayName,
   orderTemplate: c.order.message,
   orderMultiIntro: c.order.messageMultiIntro,
   orderMultiItem: c.order.messageMultiItem,
@@ -87,7 +93,7 @@ const itemListJsonLd = {
     item: {
       '@type': 'Product',
       name: p.produs,
-      category: category.categorie,
+      category: displayName,
       description: p.descriere,
       ...(p.imagine ? { image: p.imagine } : {}),
     },
@@ -96,7 +102,7 @@ const itemListJsonLd = {
 const hasHero = /^https?:\/\//i.test(category.imagine)
 ---
 
-<BaseLayout locale={locale} title={title} description={description} breadcrumb={category.categorie}>
+<BaseLayout locale={locale} title={title} description={description} breadcrumb={displayName}>
   <Fragment slot="head">
     <script type="application/ld+json" is:inline set:html={JSON.stringify(itemListJsonLd)} />
   </Fragment>
@@ -111,13 +117,13 @@ const hasHero = /^https?:\/\//i.test(category.imagine)
       <header class="ag-cat-hero" data-reveal>
         <div class="ag-cat-hero__text">
           <p class="ei-eyebrow">{cat.eyebrow}</p>
-          <h1>{category.categorie}</h1>
+          <h1>{displayName}</h1>
           <p class="ei-lead">{intro}</p>
           <p class="ag-cat-hero__count"><strong>{category.count}</strong> {cat.results}</p>
         </div>
         {hasHero && (
           <div class="ag-cat-hero__media">
-            <img src={category.imagine} alt={category.categorie} loading="eager" decoding="async" width="640" height="420" />
+            <img src={category.imagine} alt={displayName} loading="eager" decoding="async" width="640" height="420" />
           </div>
         )}
       </header>
@@ -139,7 +145,6 @@ const hasHero = /^https?:\/\//i.test(category.imagine)
             <thead>
               <tr>
                 <th scope="col" class="ag-th ag-th--check"><input type="checkbox" class="ag-check" data-catalog-selectall aria-label={cat.selectAll} /></th>
-                <th scope="col" class="ag-th ag-th--img">{cat.headImage}</th>
                 <th scope="col" class="ag-th ag-th--name">{cat.headProduct}</th>
                 <th scope="col" class="ag-th ag-th--desc">{cat.headDesc}</th>
                 <th scope="col" class="ag-th ag-th--unit">{cat.headUnit}</th>
@@ -152,13 +157,6 @@ const hasHero = /^https?:\/\//i.test(category.imagine)
                   <tr class="ag-row" data-category={p.categorie || '—'}>
                     <td class="ag-td ag-td--check" data-label={cat.headSelect}>
                       <input type="checkbox" class="ag-check" aria-label={`${cat.headSelect}: ${p.produs}`} />
-                    </td>
-                    <td class="ag-td ag-td--img" data-label={cat.headImage}>
-                      {/^https?:\/\//i.test(p.imagine) ? (
-                        <img class="ag-thumb" src={p.imagine} alt={p.produs} loading="lazy" decoding="async" width="48" height="48" />
-                      ) : (
-                        <div class="ag-thumb ag-thumb--ph" aria-hidden="true"><span>{(p.produs.trim()[0] || '·').toUpperCase()}</span></div>
-                      )}
                     </td>
                     <td class="ag-td ag-td--name" data-label={cat.headProduct}><span class="ag-row__name">{p.produs}</span></td>
                     <td class="ag-td ag-td--desc" data-label={cat.headDesc}><span class="ag-clamp">{p.descriere}</span></td>

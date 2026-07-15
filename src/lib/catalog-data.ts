@@ -51,6 +51,9 @@ export function loadProducts(): Promise<Product[]> {
   return productsPromise
 }
 
+/** Bundled EN name per slug — backfills categories whose sheet lacks categorie_en. */
+const EN_BY_SLUG = new Map(sampleCategories.map((c) => [c.slug, c.categorieEn]))
+
 let categoriesPromise: Promise<Category[]> | null = null
 /** The category list (build time). Falls back to the bundled 12. */
 export function loadCategories(): Promise<Category[]> {
@@ -59,7 +62,11 @@ export function loadCategories(): Promise<Category[]> {
       if (!categoriesUrl) return sampleCategories
       try {
         const parsed = parseCategories(await fetchText(categoriesUrl))
-        return parsed.length ? parsed : sampleCategories
+        if (!parsed.length) return sampleCategories
+        // Backfill the English name from the bundled map when the sheet has no
+        // categorie_en column yet, so the EN site is localised immediately.
+        for (const c of parsed) if (!c.categorieEn) c.categorieEn = EN_BY_SLUG.get(c.slug) ?? ''
+        return parsed
       } catch {
         return sampleCategories
       }

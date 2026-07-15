@@ -7,6 +7,7 @@
  */
 import type { Locale } from '../i18n/ui'
 import { t, localizePath } from '../i18n/utils'
+import { categoryName } from '../lib/categories'
 import type { CategoryWithProducts } from '../lib/catalog-data'
 import BaseLayout from './BaseLayout.astro'
 
@@ -26,7 +27,7 @@ const itemListJsonLd = {
   itemListElement: categories.map((g, i) => ({
     '@type': 'ListItem',
     position: i + 1,
-    name: g.categorie,
+    name: categoryName(g, locale),
     url: new URL(localizePath(`/produse/${g.slug}`, locale), Astro.site).href,
   })),
 }
@@ -50,20 +51,21 @@ const itemListJsonLd = {
         {
           categories.map((g) => {
             const href = localizePath(`/produse/${g.slug}`, locale)
+            const name = categoryName(g, locale)
             const hasImg = /^https?:\/\//i.test(g.imagine)
             return (
               <li class="ag-cat-card">
                 <a class="ag-cat-card__link" href={href}>
                   <span class="ag-cat-card__media">
                     {hasImg ? (
-                      <img src={g.imagine} alt={g.categorie} loading="lazy" decoding="async" width="480" height="320" />
+                      <img src={g.imagine} alt={name} loading="lazy" decoding="async" width="480" height="320" />
                     ) : (
-                      <span class="ag-cat-card__ph" aria-hidden="true">{(g.categorie.trim()[0] || '·').toUpperCase()}</span>
+                      <span class="ag-cat-card__ph" aria-hidden="true">{(name.trim()[0] || '·').toUpperCase()}</span>
                     )}
                     <span class="ag-cat-card__badge">{g.count} {cat.results}</span>
                   </span>
                   <span class="ag-cat-card__body">
-                    <span class="ag-cat-card__name">{g.categorie}</span>
+                    <span class="ag-cat-card__name">{name}</span>
                     <span class="ag-cat-card__cta">
                       {cat.viewProducts}
                       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>

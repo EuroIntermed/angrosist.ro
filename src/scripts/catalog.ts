@@ -64,6 +64,8 @@ interface CatalogConfig {
    * by the per-category pages (/produse/[slug]).
    */
   category?: string
+  /** Localised category name for the message (EN name on EN pages). */
+  categoryLabel?: string
   strings: CatalogStrings
 }
 
@@ -80,36 +82,6 @@ function readJson<T>(selector: string): T | null {
 /** Stable identity for a product row (name + unit + details distinguish variants). */
 function productKey(p: Product): string {
   return `${p.produs}${p.unitate}${p.descriere}`
-}
-
-/** Small accent-tinted thumbnail (product initial) when a row has no image. */
-function thumbPlaceholder(name: string): HTMLElement {
-  const box = document.createElement('div')
-  box.className = 'ag-thumb ag-thumb--ph'
-  box.setAttribute('aria-hidden', 'true')
-  const span = document.createElement('span')
-  span.textContent = (name.trim()[0] || '·').toUpperCase()
-  box.appendChild(span)
-  return box
-}
-
-function thumb(p: Product): HTMLElement {
-  const src = p.imagine.trim()
-  if (/^https?:\/\//i.test(src)) {
-    const img = document.createElement('img')
-    img.className = 'ag-thumb'
-    img.src = src
-    img.alt = p.produs
-    img.loading = 'lazy'
-    img.decoding = 'async'
-    img.width = 48
-    img.height = 48
-    img.addEventListener('error', () => {
-      img.replaceWith(thumbPlaceholder(p.produs))
-    })
-    return img
-  }
-  return thumbPlaceholder(p.produs)
 }
 
 function td(label: string, className: string): HTMLTableCellElement {
@@ -144,10 +116,6 @@ function row(p: Product, cfg: CatalogConfig, h: RowHandlers): HTMLTableRowElemen
   checkCell.appendChild(check)
   tr.appendChild(checkCell)
 
-  const imgCell = td(s.headImage, 'ag-td ag-td--img')
-  imgCell.appendChild(thumb(p))
-  tr.appendChild(imgCell)
-
   const nameCell = td(s.headProduct, 'ag-td ag-td--name')
   const name = document.createElement('span')
   name.className = 'ag-row__name'
@@ -179,17 +147,17 @@ function row(p: Product, cfg: CatalogConfig, h: RowHandlers): HTMLTableRowElemen
 }
 
 /** Fill a single-product template with everything we know. */
-function buildMessage(template: string, p: Product): string {
-  return template
+function buildMessage(cfg: CatalogConfig, p: Product): string {
+  return cfg.orderTemplate
     .replace('{product}', p.produs)
-    .replace('{category}', p.categorie || '—')
+    .replace('{category}', cfg.categoryLabel || p.categorie || '—')
     .replace('{unit}', p.unitate || '—')
     .replace('{details}', p.descriere || '—')
 }
 
 /** Build one request listing several products. */
 function buildMultiMessage(cfg: CatalogConfig, products: Product[]): string {
-  const category = cfg.category || products[0]?.categorie || '—'
+  const category = cfg.categoryLabel || cfg.category || products[0]?.categorie || '—'
   const intro = cfg.orderMultiIntro.replace('{category}', category)
   const items = products.map((p, i) =>
     cfg.orderMultiItem
@@ -260,7 +228,7 @@ function initCatalog(): void {
     placeOrder(
       {
         productName: p.produs,
-        message: buildMessage(cfg.orderTemplate, p),
+        message: buildMessage(cfg, p),
         waNumber: cfg.waNumber,
         intent: cfg.intent || 'buy',
       },
