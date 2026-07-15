@@ -1,0 +1,158 @@
+---
+/**
+ * CategoryTiles — the shared responsive grid of category tiles (hero image, name,
+ * live product count) each linking to its own page (/produse/[slug]). Used by the
+ * /produse overview (all categories) and the homepage section (a `limit`ed teaser).
+ * Names are localised (EN falls back to RO). Images degrade to a themed initial.
+ */
+import type { Locale } from '../i18n/ui'
+import { t, localizePath } from '../i18n/utils'
+import { categoryName } from '../lib/categories'
+import type { CategoryWithProducts } from '../lib/catalog-data'
+
+interface Props {
+  locale: Locale
+  categories: CategoryWithProducts[]
+  /** Cap the number of tiles (homepage teaser). Omit to show all. */
+  limit?: number
+}
+const { locale, categories, limit } = Astro.props as Props
+const cat = t(locale).catalog
+const list = typeof limit === 'number' ? categories.slice(0, limit) : categories
+---
+
+<ul class="ag-cats__grid" role="list">
+  {
+    list.map((g) => {
+      const href = localizePath(`/produse/${g.slug}`, locale)
+      const name = categoryName(g, locale)
+      const hasImg = /^https?:\/\//i.test(g.imagine)
+      return (
+        <li class="ag-cat-card">
+          <a class="ag-cat-card__link" href={href}>
+            <span class="ag-cat-card__media">
+              {hasImg ? (
+                <img src={g.imagine} alt={name} loading="lazy" decoding="async" width="480" height="320" />
+              ) : (
+                <span class="ag-cat-card__ph" aria-hidden="true">{(name.trim()[0] || '·').toUpperCase()}</span>
+              )}
+              <span class="ag-cat-card__badge">{g.count} {cat.results}</span>
+            </span>
+            <span class="ag-cat-card__body">
+              <span class="ag-cat-card__name">{name}</span>
+              <span class="ag-cat-card__cta">
+                {cat.viewProducts}
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              </span>
+            </span>
+          </a>
+        </li>
+      )
+    })
+  }
+</ul>
+
+<style>
+  .ag-cats__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+    gap: 1.4rem;
+  }
+
+  .ag-cat-card {
+    position: relative;
+  }
+  .ag-cat-card__link {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-lg);
+    overflow: hidden;
+    background: var(--ei-surface);
+    box-shadow: var(--ei-shadow-sm);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.22s var(--ei-ease-out), box-shadow 0.25s var(--ei-ease),
+      border-color 0.2s var(--ei-ease);
+  }
+  .ag-cat-card__link:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--ei-shadow-lg);
+    border-color: var(--ei-accent);
+  }
+
+  .ag-cat-card__media {
+    position: relative;
+    display: block;
+    aspect-ratio: 3 / 2;
+    background: var(--ei-accent-soft);
+    overflow: hidden;
+  }
+  .ag-cat-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s var(--ei-ease-out);
+  }
+  .ag-cat-card__link:hover .ag-cat-card__media img {
+    transform: scale(1.04);
+  }
+  .ag-cat-card__ph {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    font-size: 2.6rem;
+    font-weight: 800;
+    color: var(--ei-accent-text);
+    background: var(--ei-accent-soft);
+  }
+  .ag-cat-card__badge {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
+    padding: 0.3em 0.7em;
+    border-radius: var(--ei-radius-pill);
+    background: color-mix(in srgb, var(--ei-surface) 88%, transparent);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    border: 1px solid var(--ei-hairline);
+    color: var(--ei-ink-soft);
+    font-size: 0.74rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .ag-cat-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.05rem 1.2rem 1.2rem;
+    flex: 1;
+  }
+  .ag-cat-card__name {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--ei-ink);
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+  .ag-cat-card__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: auto;
+    color: var(--ei-accent-text);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+  .ag-cat-card__cta svg {
+    transition: transform 0.2s var(--ei-ease-out);
+  }
+  .ag-cat-card__link:hover .ag-cat-card__cta svg {
+    transform: translateX(3px);
+  }
+</style>

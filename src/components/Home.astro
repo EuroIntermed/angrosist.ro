@@ -9,11 +9,13 @@
 import type { Locale } from '../i18n/ui'
 import { t, localizePath } from '../i18n/utils'
 import { verticalUrls, waLink } from '../lib/config'
+import { loadCatalog } from '../lib/catalog-data'
 import BaseLayout from './BaseLayout.astro'
 import Hero from './Hero.astro'
 import Section from './Section.astro'
 import Card from './Card.astro'
 import Button from './Button.astro'
+import CategoryTiles from './CategoryTiles.astro'
 import FAQ from './FAQ.astro'
 
 const { locale } = Astro.props as { locale: Locale }
@@ -21,6 +23,9 @@ const c = t(locale)
 const contactHref = localizePath('/contact', locale)
 const produseHref = localizePath('/produse', locale)
 const howHref = localizePath('/cum-functioneaza', locale)
+
+// Real categories (build-time), for the homepage teaser tiles → per-category pages.
+const categories = await loadCatalog()
 
 // Ecosystem cross-links — destinations from env (Hard Rule #1).
 const pillarLinks: Record<string, { url: string; ga: string }> = {
@@ -58,15 +63,7 @@ const pillarLinks: Record<string, { url: string; ga: string }> = {
       <h2 id="cat-title">{c.categories.title}</h2>
       <p class="ei-lead">{c.categories.copy}</p>
     </div>
-    <div class="ei-grid ei-grid--3">
-      {
-        c.categories.items.map((item, i) => (
-          <Card href={produseHref} title={item.name} index={i}>
-            <p>{item.body}</p>
-          </Card>
-        ))
-      }
-    </div>
+    <CategoryTiles locale={locale} categories={categories} limit={6} />
     <div class="ei-head__cta" data-reveal>
       <Button href={produseHref} variant="primary">{c.categories.cta} &rarr;</Button>
     </div>
