@@ -5,22 +5,151 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
-    { "source": "/privacy", "destination": "/confidentialitate", "permanent": true },
-    { "source": "/privacy.html", "destination": "/confidentialitate", "permanent": true },
-    { "source": "/terms", "destination": "/termeni", "permanent": true },
-    { "source": "/terms.html", "destination": "/termeni", "permanent": true },
-    { "source": "/tos", "destination": "/termeni", "permanent": true },
-    { "source": "/data-deletion", "destination": "/gdpr", "permanent": true },
-    { "source": "/products", "destination": "/produse", "permanent": true },
-    { "source": "/catalog", "destination": "/produse", "permanent": true }
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": ".*\\.(com|it|pl)$"
+        }
+      ],
+      "destination": "/en",
+      "permanent": false
+    },
+    {
+      "source": "/contact",
+      "has": [
+        {
+          "type": "host",
+          "value": ".*\\.(com|it|pl)$"
+        }
+      ],
+      "destination": "/en/contact",
+      "permanent": false
+    },
+    {
+      "source": "/cum-functioneaza",
+      "has": [
+        {
+          "type": "host",
+          "value": ".*\\.(com|it|pl)$"
+        }
+      ],
+      "destination": "/en/cum-functioneaza",
+      "permanent": false
+    },
+    {
+      "source": "/termeni",
+      "has": [
+        {
+          "type": "host",
+          "value": ".*\\.(com|it|pl)$"
+        }
+      ],
+      "destination": "/en/termeni",
+      "permanent": false
+    },
+    {
+      "source": "/confidentialitate",
+      "has": [
+        {
+          "type": "host",
+          "value": ".*\\.(com|it|pl)$"
+        }
+      ],
+      "destination": "/en/confidentialitate",
+      "permanent": false
+    },
+    {
+      "source": "/gdpr",
+      "has": [
+        {
+          "type": "host",
+          "value": ".*\\.(com|it|pl)$"
+        }
+      ],
+      "destination": "/en/gdpr",
+      "permanent": false
+    },
+    {
+      "source": "/produse",
+      "has": [
+        {
+          "type": "host",
+          "value": ".*\\.(com|it|pl)$"
+        }
+      ],
+      "destination": "/en/produse",
+      "permanent": false
+    },
+    {
+      "source": "/produse/:slug",
+      "has": [
+        {
+          "type": "host",
+          "value": ".*\\.(com|it|pl)$"
+        }
+      ],
+      "destination": "/en/produse/:slug",
+      "permanent": false
+    },
+    {
+      "source": "/privacy",
+      "destination": "/confidentialitate",
+      "permanent": true
+    },
+    {
+      "source": "/privacy.html",
+      "destination": "/confidentialitate",
+      "permanent": true
+    },
+    {
+      "source": "/terms",
+      "destination": "/termeni",
+      "permanent": true
+    },
+    {
+      "source": "/terms.html",
+      "destination": "/termeni",
+      "permanent": true
+    },
+    {
+      "source": "/tos",
+      "destination": "/termeni",
+      "permanent": true
+    },
+    {
+      "source": "/data-deletion",
+      "destination": "/gdpr",
+      "permanent": true
+    },
+    {
+      "source": "/products",
+      "destination": "/produse",
+      "permanent": true
+    },
+    {
+      "source": "/catalog",
+      "destination": "/produse",
+      "permanent": true
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
       ]
     }
   ]
