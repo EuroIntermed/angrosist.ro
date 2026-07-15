@@ -82,6 +82,12 @@ export const siteUrl: string = (
   .trim()
   .replace(/\/+$/, '')
 
+/** Canonical origin for RO (root) pages — the Romanian domain. Env-overridable. */
+export const canonicalRo: string = str('PUBLIC_CANONICAL_RO', 'https://www.angrosist.ro').replace(/\/+$/, '')
+/** Canonical origin for EN (/en/*) pages — the primary English domain; every English
+ *  ccTLD (.com/.it/.pl/…) serves /en and consolidates here. Env-overridable. */
+export const canonicalEn: string = str('PUBLIC_CANONICAL_EN', 'https://www.angrosist.ro').replace(/\/+$/, '')
+
 /* ---- Public contact details (safe to expose; not secrets) ---------------
  * NOTE: there is intentionally NO contact-form POST endpoint. The site is
  * WhatsApp-first (wa.me deep links) + the AI chat widget; this is the standard
