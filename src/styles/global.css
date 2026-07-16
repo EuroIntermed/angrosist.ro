@@ -102,6 +102,11 @@
   --ei-surface-contrast: #10231a; /* dark green band */
   --ei-on-contrast-muted: #a9bcb0;
   --ei-eyebrow-band: #c9a84c;
+
+  /* Accent gradient — resolves from the current accent + secondary at USE time,
+     so it re-tints per vertical + per light/dark automatically. Used by the
+     landing hero highlight, gradient primary buttons and the closing CTA band. */
+  --ei-grad: linear-gradient(125deg, var(--ei-accent), var(--ei-gold-strong));
 }
 
 /* ---- ACCENT LAYER: ANGROSIST (teal-CYAN + azure), LIGHT ---------------
@@ -529,6 +534,58 @@ button {
 }
 [data-reveal='line'].in-view {
   animation-name: ei-fade-in-line;
+}
+
+/* =========================================================================
+   ABSTRACT BACKGROUND SYSTEM (shared utilities, used by the landing).
+   Generative, ~0 network weight, monochrome-leaning. Layer order on the page:
+   film grain (fixed, soft-light) → per-section mesh glow + topographic contour.
+   ========================================================================= */
+
+/* Page-level film grain: an inline feTurbulence tile, blended soft-light so it
+   only textures — never darkens — the ground. Fixed + pointer-events:none. */
+.ei-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+}
+:root[data-theme='dark'] .ei-grain,
+:root:not([data-theme='light']) .ei-grain {
+  opacity: 0.34;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .ei-grain {
+    opacity: 0.34;
+  }
+}
+
+/* Topographic contour lines: a faint flowing-line SVG, near-neutral ink, that
+   sits behind a section's content (z-index:0). Accent-tinted in dark. */
+.ei-contour {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  color: var(--ei-ink);
+  opacity: 0.055;
+}
+:root[data-theme='dark'] .ei-contour,
+:root:not([data-theme='light']) .ei-contour {
+  opacity: 0.09;
+  color: var(--ei-accent);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .ei-contour {
+    opacity: 0.09;
+    color: var(--ei-accent);
+  }
 }
 
 /* Global reduced-motion off-switch — disables every animation/transition. */

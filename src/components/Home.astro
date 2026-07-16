@@ -1,9 +1,13 @@
 ---
 /**
- * Home — full homepage body for a single locale (rendered by /index.astro and
- * /en/index.astro). Angrosist spine:
- *   hero → value strip → category grid (→ Produse) → 3-step how-it-works →
- *   trust strip → ecosystem cross-links (hub + siblings) → FAQ → WhatsApp CTA.
+ * Home — the Angrosist landing page body for a single locale (rendered by
+ * /index.astro and /en/index.astro). Bespoke Astro + hand-authored CSS; no UI
+ * library. Spine (varied rhythm, mobile-first):
+ *   hero (abstract bg + grayscale sand wash + modernized request card)
+ *   → dark stat/proof band → bento "why Angrosist" features
+ *   → category MOSAIC (CategoryTiles → /produse, the signature)
+ *   → how-it-works (3 iconified steps) → per-segment strip
+ *   → trust band → ecosystem cross-links → FAQ → gradient WhatsApp CTA.
  * All copy comes from the i18n dictionary; ecosystem URLs come from env.
  */
 import type { Locale } from '../i18n/ui'
@@ -11,12 +15,11 @@ import { t, localizePath } from '../i18n/utils'
 import { verticalUrls, waLink } from '../lib/config'
 import { loadL1 } from '../lib/catalog-data'
 import BaseLayout from './BaseLayout.astro'
-import Hero from './Hero.astro'
-import Section from './Section.astro'
-import Card from './Card.astro'
 import Button from './Button.astro'
+import Card from './Card.astro'
 import CategoryTiles from './CategoryTiles.astro'
 import FAQ from './FAQ.astro'
+import HeroPanel from './HeroPanel.astro'
 
 const { locale } = Astro.props as { locale: Locale }
 const c = t(locale)
@@ -24,7 +27,7 @@ const contactHref = localizePath('/contact', locale)
 const produseHref = localizePath('/produse', locale)
 const howHref = localizePath('/cum-functioneaza', locale)
 
-// Top-level categories (build-time), for the homepage teaser tiles → L1 pages.
+// Top-level categories (build-time) for the mosaic teaser → L1 pages.
 const categories = await loadL1()
 
 // Ecosystem cross-links — destinations from env (Hard Rule #1).
@@ -33,260 +36,879 @@ const pillarLinks: Record<string, { url: string; ga: string }> = {
   palletclearance: { url: verticalUrls.palletclearance, ga: 'clearance' },
   skalyou: { url: verticalUrls.skalyou, ga: 'skalyou' },
 }
+
+// 2px rounded line-icon set (no icon library). Indexed to the i18n arrays.
+const featureIcons = [
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7z"/><path d="M9 12l2 2 4-4"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+]
+const stepIcons = [
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M8.5 11l2 2 4-4"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12 22l-9-9 8.6-8.6a2 2 0 0 1 1.4-.6H20a2 2 0 0 1 2 2v6a2 2 0 0 1-.6 1.4z"/><circle cx="16.5" cy="7.5" r="1.3"/></svg>',
+]
+const segmentIcons = [
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V9l6 4V9l6 4V5l6 3v13z"/><path d="M3 21h18"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="13" height="10" rx="1"/><path d="M14 9h4l3 3v4h-7z"/><circle cx="6" cy="18.5" r="1.7"/><circle cx="17" cy="18.5" r="1.7"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v7a3 3 0 0 0 3 3v10"/><path d="M6.5 2v6M9 2v6"/><path d="M18 2c-1.6 0-3 2-3 5.5V13h3z"/><path d="M18 13v9"/></svg>',
+]
+const trustIcons = [
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7z"/><path d="M9 12l2 2 4-4"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 8h.01M15 8h.01M9 12h.01M15 12h.01M9 16h6"/></svg>',
+]
+
+// Bento tile classes for the 4 "why Angrosist" value items (asymmetric grid).
+const bentoSpans = [
+  'ag-tile--col4 ag-tile--feat',
+  'ag-tile--col2',
+  'ag-tile--col3',
+  'ag-tile--col3',
+]
+
+// Faint topographic contour reused in the hero + closing CTA.
+const contourPaths = [
+  'M-40 90 C 220 30 420 150 660 96 S 1040 40 1250 108',
+  'M-40 168 C 220 108 420 228 660 172 S 1040 116 1250 184',
+  'M-40 246 C 200 186 440 306 660 248 S 1060 190 1250 260',
+  'M-40 324 C 220 262 420 384 660 326 S 1040 268 1250 338',
+  'M-40 402 C 200 344 440 460 660 404 S 1060 344 1250 414',
+  'M-40 480 C 220 418 420 540 660 482 S 1040 424 1250 494',
+]
 ---
 
 <BaseLayout locale={locale} title={c.meta.homeTitle} description={c.meta.homeDescription} faqItems={c.faq.items}>
-  <Hero locale={locale} />
+  <div class="ag-home">
+    <div class="ei-grain" aria-hidden="true"></div>
 
-  <!-- Value strip -->
-  <Section tone="raised" labelledby="value-title">
-    <div class="ei-head" data-reveal>
-      <p class="ei-eyebrow">{c.value.eyebrow}</p>
-      <h2 id="value-title">{c.value.title}</h2>
-      <p class="ei-lead">{c.value.copy}</p>
-    </div>
-    <div class="ei-grid ei-grid--4">
-      {
-        c.value.items.map((item, i) => (
-          <Card title={item.title} index={i}>
-            <p>{item.body}</p>
-          </Card>
-        ))
-      }
-    </div>
-  </Section>
-
-  <!-- Category grid → Produse -->
-  <Section id="categorii" labelledby="cat-title">
-    <div class="ei-head" data-reveal>
-      <p class="ei-eyebrow">{c.categories.eyebrow}</p>
-      <h2 id="cat-title">{c.categories.title}</h2>
-      <p class="ei-lead">{c.categories.copy}</p>
-    </div>
-    <CategoryTiles locale={locale} categories={categories} basePath={produseHref} limit={6} />
-    <div class="ei-head__cta" data-reveal>
-      <Button href={produseHref} variant="primary">{c.categories.cta} &rarr;</Button>
-    </div>
-  </Section>
-
-  <!-- How it works (3 steps) -->
-  <Section id="how-we-work" tone="raised" labelledby="proc-title">
-    <div class="ei-head ei-head--center" data-reveal>
-      <p class="ei-eyebrow">{c.process.eyebrow}</p>
-      <h2 id="proc-title">{c.process.title}</h2>
-    </div>
-    <ol class="ei-steps">
-      {
-        c.process.steps.map((step, i) => (
-          <li class="ei-step" data-reveal style={`--i:${i}`}>
-            <span class="ei-step__n" aria-hidden="true">{i + 1}</span>
-            <h3>{step.title}</h3>
-            <p>{step.body}</p>
-          </li>
-        ))
-      }
-    </ol>
-    <div class="ei-head__cta ei-head__cta--center" data-reveal>
-      <Button href={howHref} variant="secondary">{c.process.cta} &rarr;</Button>
-    </div>
-  </Section>
-
-  <!-- Trust strip -->
-  <Section labelledby="trust-title">
-    <div class="ei-head ei-head--center" data-reveal>
-      <p class="ei-eyebrow">{c.trust.eyebrow}</p>
-      <h2 id="trust-title">{c.trust.title}</h2>
-    </div>
-    <div class="ei-grid ei-grid--3">
-      {
-        c.trust.items.map((item, i) => (
-          <Card title={item.title} index={i}>
-            <p>{item.body}</p>
-          </Card>
-        ))
-      }
-    </div>
-  </Section>
-
-  <!-- Ecosystem cross-links -->
-  <Section id="ecosystem" tone="contrast" labelledby="eco-title">
-    <div class="ei-head ei-head--center" data-reveal>
-      <p class="ei-eyebrow">{c.ecosystem.eyebrow}</p>
-      <h2 id="eco-title">{c.ecosystem.title}</h2>
-      <p class="ei-lead">{c.ecosystem.copy}</p>
-    </div>
-    <div class="ei-grid ei-grid--3">
-      {
-        c.ecosystem.pillars.map((p, i) => {
-          const link = pillarLinks[p.key]
-          return (
-            <Card variant="pillar" roadmap={p.roadmap} badge={p.badge} title={p.name} index={i}>
-              <p class="ei-pillar-line">{p.line}</p>
-              <div class="ei-card__pillar-actions">
-                <Button
-                  href={link.url}
-                  variant={p.roadmap ? 'ghost' : 'secondary'}
-                  size="sm"
-                  target="_blank"
-                  rel="noopener"
-                  data-ga-vertical={link.ga}
-                >
-                  {p.cta} &rarr;
-                </Button>
-              </div>
-            </Card>
-          )
-        })
-      }
-    </div>
-  </Section>
-
-  <!-- FAQ -->
-  <Section id="faq" labelledby="faq-title">
-    <div class="ei-head ei-head--center" data-reveal>
-      <p class="ei-eyebrow">{c.faq.eyebrow}</p>
-      <h2 id="faq-title">{c.faq.title}</h2>
-    </div>
-    <FAQ items={c.faq.items} />
-  </Section>
-
-  <!-- Final WhatsApp CTA -->
-  <Section id="contact" tone="contrast" labelledby="cta-title">
-    <div class="ei-cta" data-reveal>
-      <p class="ei-eyebrow">{c.contactCta.eyebrow}</p>
-      <h2 id="cta-title">{c.contactCta.title}</h2>
-      <p class="ei-lead">{c.contactCta.copy}</p>
-      <div class="ei-cta__actions">
-        <Button href={waLink(c.hero.whatsappText)} variant="whatsapp" target="_blank" rel="noopener" data-ga-vertical="whatsapp">
-          {c.contactCta.primary}
-        </Button>
-        <Button href={contactHref} variant="secondary">{c.contactCta.secondary}</Button>
+    <!-- HERO -->
+    <section class="ag-hero" aria-labelledby="ag-hero-title">
+      <div class="ag-hero__glow" aria-hidden="true"></div>
+      <div class="ag-hero__wash" aria-hidden="true"></div>
+      <svg class="ei-contour" viewBox="0 0 1200 560" preserveAspectRatio="xMidYMid slice" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+        {contourPaths.map((d) => <path d={d} />)}
+      </svg>
+      <div class="ei-container ag-hero__grid">
+        <div class="ag-hero__content">
+          <p class="ag-badge" data-hero style="--i:0">
+            <span class="ag-badge__dot" aria-hidden="true"></span>
+            {c.hero.badge}
+          </p>
+          <h1 class="ag-hero__title" id="ag-hero-title" data-hero style="--i:1">{c.hero.title}</h1>
+          <p class="ei-lead ag-hero__lead" data-hero style="--i:2">{c.hero.lead}</p>
+          <p class="ag-moq" data-hero style="--i:3">
+            <span class="ag-moq__chip">{c.moq.anchor}</span>
+            <span class="ag-moq__note">{c.moq.note}</span>
+          </p>
+          <div class="ag-hero__actions" data-hero style="--i:4">
+            <Button href={waLink(c.hero.whatsappText)} variant="whatsapp" target="_blank" rel="noopener" data-ga-vertical="whatsapp">
+              {c.hero.whatsapp}
+            </Button>
+            <Button href={produseHref} variant="secondary">{c.hero.primary}</Button>
+          </div>
+          <p class="ag-hero__trust" data-hero style="--i:5">{c.hero.trustLine}</p>
+        </div>
+        <div class="ag-hero__visual" data-hero style="--i:2">
+          <HeroPanel locale={locale} />
+        </div>
       </div>
-    </div>
-  </Section>
+    </section>
+
+    <!-- STAT / PROOF band (dark) -->
+    <section class="ag-band-wrap" aria-labelledby="ag-stat-title">
+      <div class="ei-container">
+        <div class="ag-band" data-reveal>
+          <svg class="ei-contour" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+            {contourPaths.slice(0, 4).map((d) => <path d={d} />)}
+          </svg>
+          <h2 id="ag-stat-title" class="ei-sr-only">{c.stats.srTitle}</h2>
+          <dl class="ag-stats">
+            {c.stats.items.map((s, i) => (
+              <div class="ag-stat" style={`--i:${i}`}>
+                <dt>{s.value}</dt>
+                <dd>{s.label}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- BENTO — why Angrosist -->
+    <section class="ag-sec" aria-labelledby="ag-value-title">
+      <div class="ei-container">
+        <div class="ag-head" data-reveal>
+          <p class="ei-eyebrow">{c.value.eyebrow}</p>
+          <h2 id="ag-value-title">{c.value.title}</h2>
+          <p class="ei-lead">{c.value.copy}</p>
+        </div>
+        <div class="ag-bento">
+          {c.value.items.map((item, i) => (
+            <article class={`ag-tile ${bentoSpans[i]}`} data-reveal style={`--i:${i}`}>
+              <span class="ag-tile__ic" aria-hidden="true" set:html={featureIcons[i]} />
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORY MOSAIC (signature) → /produse -->
+    <section class="ag-sec ag-sec--raised" id="categorii" aria-labelledby="ag-cat-title">
+      <div class="ei-container">
+        <div class="ag-head" data-reveal>
+          <p class="ei-eyebrow">{c.categories.eyebrow}</p>
+          <h2 id="ag-cat-title">{c.categories.title}</h2>
+          <p class="ei-lead">{c.categories.copy}</p>
+        </div>
+        <div data-reveal>
+          <CategoryTiles locale={locale} categories={categories} basePath={produseHref} limit={6} />
+        </div>
+        <div class="ag-cat-foot" data-reveal>
+          <p class="ag-cat-foot__note">
+            <span class="ag-moq__chip">{c.moq.anchor}</span>
+            {c.categories.moqNote}
+          </p>
+          <Button href={produseHref} variant="primary">{c.categories.cta} &rarr;</Button>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS (3 iconified steps) -->
+    <section class="ag-sec" id="how-we-work" aria-labelledby="ag-proc-title">
+      <div class="ei-container">
+        <div class="ag-head ag-head--center" data-reveal>
+          <p class="ei-eyebrow">{c.process.eyebrow}</p>
+          <h2 id="ag-proc-title">{c.process.title}</h2>
+        </div>
+        <ol class="ag-steps">
+          {c.process.steps.map((step, i) => (
+            <li class="ag-step" data-reveal style={`--i:${i}`}>
+              <span class="ag-step__ic" aria-hidden="true" set:html={stepIcons[i]} />
+              <span class="ag-step__n" aria-hidden="true">{`0${i + 1}`}</span>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </li>
+          ))}
+        </ol>
+        <div class="ag-head__cta" data-reveal>
+          <Button href={howHref} variant="secondary">{c.process.cta} &rarr;</Button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PER-SEGMENT strip -->
+    <section class="ag-sec ag-sec--raised" aria-labelledby="ag-seg-title">
+      <div class="ei-container">
+        <div class="ag-head" data-reveal>
+          <p class="ei-eyebrow">{c.segments.eyebrow}</p>
+          <h2 id="ag-seg-title">{c.segments.title}</h2>
+          <p class="ei-lead">{c.segments.copy}</p>
+        </div>
+        <ul class="ag-segs" role="list">
+          {c.segments.items.map((seg, i) => (
+            <li class="ag-seg" data-reveal style={`--i:${i}`}>
+              <span class="ag-seg__ic" aria-hidden="true" set:html={segmentIcons[i]} />
+              <span class="ag-seg__name">{seg.name}</span>
+              <span class="ag-seg__body">{seg.body}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <!-- TRUST band -->
+    <section class="ag-sec" aria-labelledby="ag-trust-title">
+      <div class="ei-container">
+        <div class="ag-head ag-head--center" data-reveal>
+          <p class="ei-eyebrow">{c.trust.eyebrow}</p>
+          <h2 id="ag-trust-title">{c.trust.title}</h2>
+        </div>
+        <div class="ag-trust">
+          {c.trust.items.map((item, i) => (
+            <article class="ag-trust__card" data-reveal style={`--i:${i}`}>
+              <span class="ag-trust__ic" aria-hidden="true" set:html={trustIcons[i]} />
+              <div>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- ECOSYSTEM cross-links -->
+    <section class="ag-sec ag-sec--raised" id="ecosystem" aria-labelledby="ag-eco-title">
+      <div class="ei-container">
+        <div class="ag-head ag-head--center" data-reveal>
+          <p class="ei-eyebrow">{c.ecosystem.eyebrow}</p>
+          <h2 id="ag-eco-title">{c.ecosystem.title}</h2>
+          <p class="ei-lead">{c.ecosystem.copy}</p>
+        </div>
+        <div class="ag-eco">
+          {c.ecosystem.pillars.map((p, i) => {
+            const link = pillarLinks[p.key]
+            return (
+              <Card variant="pillar" roadmap={p.roadmap} badge={p.badge} title={p.name} index={i}>
+                <p class="ei-pillar-line">{p.line}</p>
+                <div class="ei-card__pillar-actions">
+                  <Button
+                    href={link.url}
+                    variant={p.roadmap ? 'ghost' : 'secondary'}
+                    size="sm"
+                    target="_blank"
+                    rel="noopener"
+                    data-ga-vertical={link.ga}
+                  >
+                    {p.cta} &rarr;
+                  </Button>
+                </div>
+              </Card>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="ag-sec" id="faq" aria-labelledby="ag-faq-title">
+      <div class="ei-container">
+        <div class="ag-head ag-head--center" data-reveal>
+          <p class="ei-eyebrow">{c.faq.eyebrow}</p>
+          <h2 id="ag-faq-title">{c.faq.title}</h2>
+        </div>
+        <FAQ items={c.faq.items} />
+      </div>
+    </section>
+
+    <!-- Final WhatsApp CTA (gradient) -->
+    <section class="ag-sec ag-sec--flush" id="contact" aria-labelledby="ag-cta-title">
+      <div class="ei-container">
+        <div class="ag-cta" data-reveal>
+          <svg class="ei-contour" viewBox="0 0 1200 360" preserveAspectRatio="xMidYMid slice" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+            {contourPaths.slice(0, 4).map((d) => <path d={d} />)}
+          </svg>
+          <div class="ag-cta__in">
+            <p class="ei-eyebrow ag-cta__eyebrow">{c.contactCta.eyebrow}</p>
+            <h2 id="ag-cta-title">{c.contactCta.title}</h2>
+            <p class="ag-cta__lead">{c.contactCta.copy}</p>
+            <div class="ag-cta__actions">
+              <Button href={waLink(c.hero.whatsappText)} variant="whatsapp" target="_blank" rel="noopener" data-ga-vertical="whatsapp">
+                {c.contactCta.primary}
+              </Button>
+              <Button href={contactHref} class="ag-cta__ghost">{c.contactCta.secondary}</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 </BaseLayout>
 
 <style>
-  .ei-head {
-    max-width: 60ch;
-    margin-bottom: 2.5rem;
+  /* ---- shared landing scaffolding ------------------------------------- */
+  .ag-home {
+    position: relative;
   }
-  .ei-head--center {
-    margin-inline: auto;
-    text-align: center;
+  .ag-sec {
+    position: relative;
+    padding-block: clamp(3.25rem, 2.2rem + 5vw, 6.5rem);
   }
-  .ei-head--center .ei-lead {
-    margin-inline: auto;
+  .ag-sec--raised {
+    background: var(--ei-surface-raised);
+    border-block: 1px solid var(--ei-hairline);
   }
-  .ei-head h2 {
+  .ag-sec--flush {
+    padding-top: clamp(1rem, 0.5rem + 2vw, 2rem);
+  }
+
+  .ag-head {
+    max-width: 62ch;
+    margin-bottom: clamp(1.8rem, 1.2rem + 2vw, 2.8rem);
+  }
+  .ag-head h2 {
     margin-top: 0.7rem;
   }
-  .ei-head .ei-lead {
-    margin-top: 1rem;
+  .ag-head .ei-lead {
+    margin-top: 0.9rem;
   }
-  .ei-head__cta {
-    margin-top: 2rem;
+  .ag-head--center {
+    margin-inline: auto;
+    text-align: center;
   }
-  .ei-head__cta--center {
+  .ag-head--center .ei-lead {
+    margin-inline: auto;
+  }
+  .ag-head__cta {
+    margin-top: clamp(1.8rem, 1.2rem + 2vw, 2.6rem);
     text-align: center;
   }
 
-  .ei-grid {
+  /* Gradient primary buttons — scoped to the landing only. */
+  .ag-home :global(.ei-btn--primary) {
+    background: var(--ei-grad);
+    color: #fff;
+  }
+  .ag-home :global(.ei-btn--primary:hover) {
+    background: var(--ei-grad);
+    filter: brightness(1.05);
+  }
+
+  /* =====================================================================
+     HERO
+     ===================================================================== */
+  .ag-hero {
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(2.5rem, 1.6rem + 5vw, 5rem) clamp(3rem, 2rem + 5vw, 6rem);
+  }
+  .ag-hero__glow {
+    position: absolute;
+    inset: -30% -15% auto -15%;
+    height: 130%;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(38% 46% at 82% 12%, var(--ei-glow), transparent 68%),
+      radial-gradient(34% 40% at 8% 6%, var(--ei-gold-soft), transparent 70%),
+      radial-gradient(52% 60% at 50% 120%, var(--ei-accent-soft), transparent 62%);
+    filter: saturate(0.95) blur(4px);
+  }
+  /* Grayscale sand-ripple wash — subtle organic "abundance" texture, tinted by
+     the accent and faded into the top-right so it never touches the copy. */
+  .ag-hero__wash {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: url('/textures/hero.webp') center / cover no-repeat;
+    filter: grayscale(1) contrast(1.05);
+    opacity: 0.08;
+    mix-blend-mode: multiply;
+    -webkit-mask-image: radial-gradient(120% 120% at 88% 0%, #000 0%, transparent 60%);
+    mask-image: radial-gradient(120% 120% at 88% 0%, #000 0%, transparent 60%);
+  }
+  :root[data-theme='dark'] .ag-hero__wash,
+  :root:not([data-theme='light']) .ag-hero__wash {
+    opacity: 0.1;
+    mix-blend-mode: screen;
+  }
+  .ag-hero__grid {
+    position: relative;
+    z-index: 1;
     display: grid;
-    gap: 1.25rem;
+    grid-template-columns: 1.05fr 0.95fr;
+    align-items: center;
+    gap: clamp(2rem, 1rem + 4vw, 4.5rem);
   }
-  .ei-grid--3 {
-    grid-template-columns: repeat(3, 1fr);
+  .ag-hero__content {
+    max-width: 40rem;
   }
-  .ei-grid--4 {
+  .ag-hero__title {
+    margin-top: 1.1rem;
+    font-size: clamp(2.35rem, 1.5rem + 3.6vw, 4rem);
+    letter-spacing: -0.04em;
+  }
+  .ag-hero__lead {
+    margin-top: 1.2rem;
+  }
+  .ag-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.9rem;
+  }
+  .ag-hero__trust {
+    margin-top: 1.35rem;
+    font-size: 0.86rem;
+    color: var(--ei-faint);
+  }
+  .ag-hero__visual {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* badge */
+  .ag-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    margin: 0;
+    padding: 0.45em 0.95em;
+    border: 1px solid var(--ei-hairline-strong);
+    border-radius: var(--ei-radius-pill);
+    background: var(--ei-surface);
+    box-shadow: var(--ei-shadow-sm);
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ei-ink-soft);
+  }
+  .ag-badge__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ei-accent);
+    box-shadow: 0 0 0 4px var(--ei-accent-soft);
+    animation: ei-badge-dot 2.4s ease-in-out infinite;
+  }
+
+  /* MOQ anchor */
+  .ag-moq {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0.85rem;
+    margin-top: 1.4rem;
+  }
+  .ag-moq__chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em;
+    border-radius: var(--ei-radius-pill);
+    background: var(--ei-grad);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    box-shadow: var(--ei-shadow-sm);
+    white-space: nowrap;
+  }
+  .ag-moq__note {
+    color: var(--ei-muted);
+    font-size: 0.88rem;
+    max-width: 46ch;
+  }
+
+  [data-hero] {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: ei-fade-up 0.8s var(--ei-ease-out) forwards;
+    animation-delay: calc(var(--i, 0) * 110ms + 90ms);
+  }
+
+  /* =====================================================================
+     STAT / PROOF band
+     ===================================================================== */
+  .ag-band-wrap {
+    padding-block: clamp(0.5rem, 0.5rem + 1vw, 1.5rem) 0;
+  }
+  .ag-band {
+    position: relative;
+    overflow: hidden;
+    background: var(--ei-surface-contrast);
+    color: var(--ei-on-contrast);
+    border-radius: var(--ei-radius-xl);
+    padding: clamp(1.8rem, 1.2rem + 3vw, 3rem) clamp(1.5rem, 1rem + 3vw, 3rem);
+    box-shadow: var(--ei-shadow-lg);
+  }
+  .ag-band::before {
+    content: '';
+    position: absolute;
+    inset: auto -10% -70% auto;
+    width: 55%;
+    height: 130%;
+    background: radial-gradient(circle, var(--ei-glow), transparent 70%);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  .ag-stats {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    display: grid;
     grid-template-columns: repeat(4, 1fr);
+    gap: clamp(1.1rem, 0.6rem + 2vw, 2.4rem);
+  }
+  .ag-stat dt {
+    font-size: clamp(1.9rem, 1.2rem + 2.6vw, 2.9rem);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    background: linear-gradient(120deg, #fff, var(--ei-eyebrow-band));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .ag-stat dd {
+    margin: 0.45rem 0 0;
+    color: var(--ei-on-contrast-muted);
+    font-size: 0.92rem;
+    line-height: 1.35;
   }
 
-  .ei-pillar-line {
-    font-size: 1.02rem;
+  /* =====================================================================
+     BENTO features
+     ===================================================================== */
+  .ag-bento {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: clamp(0.8rem, 0.5rem + 1vw, 1.15rem);
+  }
+  .ag-tile {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: clamp(1.3rem, 1rem + 1.4vw, 1.9rem);
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-lg);
+    box-shadow: var(--ei-shadow-sm);
+    transition:
+      transform 0.3s var(--ei-ease-out),
+      box-shadow 0.3s var(--ei-ease),
+      border-color 0.3s var(--ei-ease);
+  }
+  .ag-tile:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--ei-shadow-md);
+    border-color: var(--ei-accent);
+  }
+  .ag-tile--col2 { grid-column: span 2; }
+  .ag-tile--col3 { grid-column: span 3; }
+  .ag-tile--col4 { grid-column: span 4; }
+  .ag-tile__ic {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    margin-bottom: 0.6rem;
+    border-radius: var(--ei-radius-md);
+    background: var(--ei-accent-soft);
+    color: var(--ei-accent-text);
+  }
+  .ag-tile__ic :global(svg) {
+    width: 24px;
+    height: 24px;
+  }
+  .ag-tile h3 {
+    font-size: 1.18rem;
+  }
+  .ag-tile p {
+    color: var(--ei-muted);
+    font-size: 0.96rem;
+    text-wrap: pretty;
+  }
+  /* Feature tile — gradient fill, reversed content. */
+  .ag-tile--feat {
+    background: var(--ei-grad);
+    border: none;
+    color: #fff;
+    justify-content: flex-end;
+    min-height: 220px;
+    box-shadow: var(--ei-shadow-md);
+  }
+  .ag-tile--feat h3 { color: #fff; font-size: 1.4rem; }
+  .ag-tile--feat p { color: rgba(255, 255, 255, 0.88); }
+  .ag-tile--feat .ag-tile__ic {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
   }
 
-  /* Process steps */
-  .ei-steps {
+  /* =====================================================================
+     HOW IT WORKS
+     ===================================================================== */
+  .ag-steps {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
-    counter-reset: step;
+    gap: clamp(1rem, 0.6rem + 1.5vw, 1.4rem);
   }
-  .ei-step {
+  .ag-step {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.55rem;
-    padding: 1.6rem 1.5rem;
+    padding: clamp(1.5rem, 1.2rem + 1vw, 2rem);
     background: var(--ei-surface);
     border: 1px solid var(--ei-hairline);
-    border-radius: var(--ei-radius-md);
+    border-radius: var(--ei-radius-lg);
+    box-shadow: var(--ei-shadow-sm);
   }
-  .ei-step__n {
+  .ag-step__ic {
     display: grid;
     place-items: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--ei-radius-md);
     background: var(--ei-accent-soft);
     color: var(--ei-accent-text);
+  }
+  .ag-step__ic :global(svg) {
+    width: 25px;
+    height: 25px;
+  }
+  .ag-step__n {
+    position: absolute;
+    top: clamp(1.2rem, 1rem + 1vw, 1.7rem);
+    right: clamp(1.2rem, 1rem + 1vw, 1.7rem);
+    font-size: 1.3rem;
     font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--ei-hairline-strong);
     font-variant-numeric: tabular-nums;
   }
-  .ei-step h3 {
-    font-size: 1.08rem;
+  .ag-step h3 {
+    margin-top: 0.3rem;
+    font-size: 1.15rem;
   }
-  .ei-step p {
+  .ag-step p {
     color: var(--ei-muted);
-    font-size: 0.94rem;
+    font-size: 0.95rem;
   }
 
-  /* Contact CTA */
-  .ei-cta {
-    max-width: 60ch;
-    margin-inline: auto;
+  /* =====================================================================
+     CATEGORY mosaic footer
+     ===================================================================== */
+  .ag-cat-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    margin-top: clamp(1.6rem, 1.2rem + 1.5vw, 2.4rem);
+  }
+  .ag-cat-foot__note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0.85rem;
+    color: var(--ei-muted);
+    font-size: 0.92rem;
+    max-width: 62ch;
+  }
+
+  /* =====================================================================
+     PER-SEGMENT strip
+     ===================================================================== */
+  .ag-segs {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(0.9rem, 0.5rem + 1.4vw, 1.3rem);
+  }
+  .ag-seg {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: clamp(1.2rem, 1rem + 1vw, 1.6rem);
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-lg);
+    box-shadow: var(--ei-shadow-sm);
+    transition: transform 0.25s var(--ei-ease-out), border-color 0.25s var(--ei-ease);
+  }
+  .ag-seg:hover {
+    transform: translateY(-3px);
+    border-color: var(--ei-accent);
+  }
+  .ag-seg__ic {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--ei-radius-sm);
+    background: var(--ei-accent-soft);
+    color: var(--ei-accent-text);
+  }
+  .ag-seg__ic :global(svg) {
+    width: 22px;
+    height: 22px;
+  }
+  .ag-seg__name {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--ei-ink);
+  }
+  .ag-seg__body {
+    color: var(--ei-muted);
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  /* =====================================================================
+     TRUST band
+     ===================================================================== */
+  .ag-trust {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1rem, 0.6rem + 1.5vw, 1.4rem);
+  }
+  .ag-trust__card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: clamp(1.4rem, 1.1rem + 1vw, 1.9rem);
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-lg);
+    box-shadow: var(--ei-shadow-sm);
+  }
+  .ag-trust__ic {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--ei-radius-md);
+    background: var(--ei-accent-soft);
+    color: var(--ei-accent-text);
+  }
+  .ag-trust__ic :global(svg) {
+    width: 23px;
+    height: 23px;
+  }
+  .ag-trust__card h3 {
+    font-size: 1.08rem;
+    margin-bottom: 0.35rem;
+  }
+  .ag-trust__card p {
+    color: var(--ei-muted);
+    font-size: 0.93rem;
+  }
+
+  /* =====================================================================
+     ECOSYSTEM
+     ===================================================================== */
+  .ag-eco {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1rem, 0.6rem + 1.5vw, 1.4rem);
+  }
+  .ei-pillar-line {
+    font-size: 1.02rem;
+  }
+
+  /* =====================================================================
+     Closing CTA (gradient)
+     ===================================================================== */
+  .ag-cta {
+    position: relative;
+    overflow: hidden;
+    background: var(--ei-grad);
+    color: #fff;
+    border-radius: var(--ei-radius-xl);
+    padding: clamp(2.2rem, 1.6rem + 4vw, 3.8rem) clamp(1.5rem, 1rem + 3vw, 3rem);
     text-align: center;
+    box-shadow: var(--ei-shadow-lg);
   }
-  .ei-cta h2 {
-    margin-top: 0.7rem;
+  .ag-cta::before {
+    content: '';
+    position: absolute;
+    inset: -40% -10% auto;
+    height: 130%;
+    background: radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.28), transparent 60%);
+    pointer-events: none;
   }
-  .ei-cta .ei-lead {
-    margin: 1rem auto 0;
+  .ag-cta .ei-contour {
+    color: #fff;
+    opacity: 0.12;
   }
-  .ei-cta__actions {
+  .ag-cta__in {
+    position: relative;
+    z-index: 1;
+    max-width: 52ch;
+    margin-inline: auto;
+  }
+  .ag-cta__eyebrow {
+    color: rgba(255, 255, 255, 0.85);
+    justify-content: center;
+  }
+  .ag-cta h2 {
+    color: #fff;
+    margin-top: 0.6rem;
+  }
+  .ag-cta__lead {
+    margin: 0.9rem auto 0;
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 48ch;
+    text-wrap: pretty;
+  }
+  .ag-cta__actions {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.75rem;
-    margin-top: 2rem;
+    margin-top: 1.9rem;
   }
-  .ei-cta__actions :global(.ei-btn--secondary),
-  .ei-cta__actions :global(.ei-btn--ghost) {
-    --_fg: var(--ei-on-contrast);
-    --_bd: rgba(255, 255, 255, 0.35);
+  /* Ghost-on-gradient secondary button (landing-scoped override). */
+  .ag-cta__actions :global(.ag-cta__ghost) {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.4);
   }
-  .ei-cta__actions :global(.ei-btn--secondary:hover) {
-    --_bg: rgba(255, 255, 255, 0.1);
-    --_bd: var(--ei-on-contrast);
-    --_fg: var(--ei-on-contrast);
+  .ag-cta__actions :global(.ag-cta__ghost:hover) {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #fff;
   }
 
-  @media (max-width: 960px) {
-    .ei-grid--3,
-    .ei-grid--4 {
+  /* =====================================================================
+     RESPONSIVE — collapse to a clean single column, no horizontal scroll.
+     ===================================================================== */
+  @media (max-width: 920px) {
+    .ag-hero__grid {
+      grid-template-columns: 1fr;
+      gap: 2.4rem;
+    }
+    .ag-hero__visual {
+      order: -1;
+    }
+    .ag-hero__content {
+      max-width: 100%;
+    }
+    .ag-bento {
       grid-template-columns: repeat(2, 1fr);
     }
-    .ei-steps {
+    .ag-tile--col2,
+    .ag-tile--col3,
+    .ag-tile--col4 {
+      grid-column: span 1;
+    }
+    .ag-tile--feat {
+      grid-column: 1 / -1;
+      min-height: 0;
+    }
+    .ag-steps,
+    .ag-trust,
+    .ag-eco {
       grid-template-columns: 1fr;
     }
+    .ag-segs {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .ag-stats {
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: 1.6rem;
+    }
   }
-  @media (max-width: 560px) {
-    .ei-grid--3,
-    .ei-grid--4 {
+
+  @media (max-width: 520px) {
+    .ag-bento,
+    .ag-segs {
       grid-template-columns: 1fr;
+    }
+    .ag-stats {
+      grid-template-columns: 1fr 1fr;
+    }
+    .ag-cat-foot {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .ag-hero__actions :global(.ei-btn),
+    .ag-cta__actions :global(.ei-btn) {
+      flex: 1 1 100%;
     }
   }
 </style>

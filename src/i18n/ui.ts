@@ -88,6 +88,8 @@ const ro = {
     title: 'Categorii orientative, nu listări publice de prețuri',
     copy: 'Explorează catalogul orientativ sau trimite o descriere scurtă dacă necesarul este mixt.',
     cta: 'Vezi catalogul',
+    moqNote:
+      'Minimum ~100 kg per produs (SKU); loturi standard 250 / 500 / 750 / 1000 kg. Mai multe produse pot cumula volumul.',
     items: [
       {
         name: 'Materii prime & auxiliare',
@@ -113,6 +115,30 @@ const ro = {
         name: 'FMCG & produse standard B2B',
         body: 'Produse ambalate, non-food standard, distribuție, retail și private label.',
       },
+    ],
+  },
+  stats: {
+    srTitle: 'Angrosist în cifre',
+    items: [
+      { value: '1.320+', label: 'produse în catalog' },
+      { value: '13', label: 'categorii B2B' },
+      { value: 'de la 100 kg', label: 'MOQ pe produs' },
+      { value: '24–48h', label: 'timp de răspuns' },
+    ],
+  },
+  moq: {
+    anchor: 'de la 100 kg / lot',
+    note: 'Minimum ~100 kg per produs; loturi standard 250 / 500 / 750 / 1000 kg.',
+  },
+  segments: {
+    eyebrow: 'Pentru cine',
+    title: 'Aprovizionăm tot lanțul B2B',
+    copy: 'Producție · Distribuție · Retail · HoReCa — aceleași standarde de verificare și livrare pentru fiecare.',
+    items: [
+      { name: 'Producție', body: 'Materii prime și ingrediente pentru linii de producție.' },
+      { name: 'Distribuție', body: 'Volume recurente și forecast pentru distribuitori.' },
+      { name: 'Retail', body: 'FMCG, private label și produse standard pentru raft.' },
+      { name: 'HoReCa', body: 'Aprovizionare constantă pentru bucătării și lanțuri.' },
     ],
   },
   process: {
@@ -508,6 +534,8 @@ const en: typeof ro = {
     title: 'Indicative categories, not public price lists',
     copy: 'Browse the indicative catalog or send a short description if your needs are mixed.',
     cta: 'See the catalog',
+    moqNote:
+      'Minimum ~100 kg per product (SKU); standard lots of 250 / 500 / 750 / 1000 kg. Multiple products can add up to the volume.',
     items: [
       {
         name: 'Raw materials & auxiliaries',
@@ -533,6 +561,30 @@ const en: typeof ro = {
         name: 'FMCG & standard B2B products',
         body: 'Packaged goods, standard non-food, distribution, retail and private label.',
       },
+    ],
+  },
+  stats: {
+    srTitle: 'Angrosist in numbers',
+    items: [
+      { value: '1,320+', label: 'products in the catalog' },
+      { value: '13', label: 'B2B categories' },
+      { value: 'from 100 kg', label: 'MOQ per product' },
+      { value: '24–48h', label: 'response time' },
+    ],
+  },
+  moq: {
+    anchor: 'from 100 kg / lot',
+    note: 'Minimum ~100 kg per product; standard lots of 250 / 500 / 750 / 1000 kg.',
+  },
+  segments: {
+    eyebrow: 'Who we serve',
+    title: 'We supply the whole B2B chain',
+    copy: 'Production · Distribution · Retail · HoReCa — the same verification and delivery standards for each.',
+    items: [
+      { name: 'Production', body: 'Raw materials and ingredients for production lines.' },
+      { name: 'Distribution', body: 'Recurring volumes and forecasts for distributors.' },
+      { name: 'Retail', body: 'FMCG, private label and standard shelf products.' },
+      { name: 'HoReCa', body: 'Steady supply for kitchens and chains.' },
     ],
   },
   process: {
