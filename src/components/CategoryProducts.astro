@@ -123,7 +123,7 @@ const hasHero = /^https?:\/\//i.test(category.imagine)
         </div>
         {hasHero && (
           <div class="ag-cat-hero__media">
-            <img src={category.imagine} alt={displayName} loading="eager" decoding="async" width="640" height="420" />
+            <img src={category.imagine} alt={displayName} loading="eager" decoding="async" width="640" height="420" onerror="this.closest('.ag-cat-hero__media')?.remove()" />
           </div>
         )}
       </header>
