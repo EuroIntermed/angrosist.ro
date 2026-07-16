@@ -36,9 +36,20 @@ export interface Catalog {
 const bundleCatalog = bundle as unknown as Catalog
 
 async function fetchText(url: string): Promise<string> {
-  const res = await fetch(url, { headers: { Accept: 'text/csv, application/json' } })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  return res.text()
+  // Bound the build-time fetch so a slow/hanging Sheet can't stall the whole
+  // build — on timeout it throws and the caller falls back to the bundle.
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), 10_000)
+  try {
+    const res = await fetch(url, {
+      headers: { Accept: 'text/csv, application/json' },
+      signal: ctrl.signal,
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.text()
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 /**

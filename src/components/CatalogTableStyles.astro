@@ -234,8 +234,8 @@
   .ag-td--desc {
     color: var(--ei-muted);
   }
-  /* Long product descriptions clamp to 3 lines and expand on click (JS toggles
-     .is-open). The full text is always in the DOM (SEO); this is display-only. */
+  /* Long product descriptions clamp to 3 lines; a "See more" button (JS toggles
+     .is-open) reveals the rest. The full text is always in the DOM (SEO). */
   .ag-clamp {
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -243,19 +243,29 @@
     overflow: hidden;
     text-wrap: pretty;
   }
-  .ag-clamp.is-clickable {
-    cursor: pointer;
-  }
   .ag-clamp.is-open {
     -webkit-line-clamp: unset;
     display: block;
   }
   .ag-clamp__more {
     display: inline-block;
-    margin-top: 0.15rem;
+    margin-top: 0.25rem;
+    padding: 0;
+    border: 0;
+    background: none;
     color: var(--ei-accent-text);
+    font: inherit;
     font-size: 0.82rem;
     font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .ag-clamp__more:hover {
+    color: var(--ei-accent-strong);
+  }
+  .ag-clamp__more[hidden] {
+    display: none;
   }
   .ag-td--unit {
     color: var(--ei-muted);

@@ -41,6 +41,8 @@ interface CatalogStrings {
   searchEmpty: string
   headProduct: string
   headDesc: string
+  seeMore: string
+  seeLess: string
   headUnit: string
   headOrder: string
   headSelect: string
@@ -122,15 +124,26 @@ function row(p: Row, cfg: CatalogConfig, h: RowHandlers): HTMLTableRowElement {
 
   const descCell = td(s.headDesc, 'ag-td ag-td--desc')
   const descText = document.createElement('span')
-  descText.className = 'ag-clamp is-clickable'
+  descText.className = 'ag-clamp'
   descText.textContent = p.descriere
-  // Expand/collapse the full description on click (clamped to 3 lines otherwise).
-  // Marked clickable only when the text actually overflows its clamp.
-  descText.addEventListener('click', () => descText.classList.toggle('is-open'))
-  requestAnimationFrame(() => {
-    if (descText.scrollHeight - descText.clientHeight < 4) descText.classList.remove('is-clickable')
-  })
+  descText.title = p.descriere // native tooltip on desktop hover (bonus)
   descCell.appendChild(descText)
+  // "See more / See less" toggle — shown ONLY when the description actually
+  // overflows its 3-line clamp. Explicit + works on every device (hover is not
+  // reliable on touch). Measured after layout (rAF), once the row is in the DOM.
+  const moreBtn = document.createElement('button')
+  moreBtn.type = 'button'
+  moreBtn.className = 'ag-clamp__more'
+  moreBtn.textContent = s.seeMore
+  moreBtn.hidden = true
+  moreBtn.addEventListener('click', () => {
+    const open = descText.classList.toggle('is-open')
+    moreBtn.textContent = open ? s.seeLess : s.seeMore
+  })
+  descCell.appendChild(moreBtn)
+  requestAnimationFrame(() => {
+    if (descText.scrollHeight - descText.clientHeight > 4) moreBtn.hidden = false
+  })
   tr.appendChild(descCell)
 
   const unitCell = td(s.headUnit, 'ag-td ag-td--unit')
