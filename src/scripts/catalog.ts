@@ -122,8 +122,14 @@ function row(p: Row, cfg: CatalogConfig, h: RowHandlers): HTMLTableRowElement {
 
   const descCell = td(s.headDesc, 'ag-td ag-td--desc')
   const descText = document.createElement('span')
-  descText.className = 'ag-clamp'
+  descText.className = 'ag-clamp is-clickable'
   descText.textContent = p.descriere
+  // Expand/collapse the full description on click (clamped to 3 lines otherwise).
+  // Marked clickable only when the text actually overflows its clamp.
+  descText.addEventListener('click', () => descText.classList.toggle('is-open'))
+  requestAnimationFrame(() => {
+    if (descText.scrollHeight - descText.clientHeight < 4) descText.classList.remove('is-clickable')
+  })
   descCell.appendChild(descText)
   tr.appendChild(descCell)
 

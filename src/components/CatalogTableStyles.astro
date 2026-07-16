@@ -234,12 +234,28 @@
   .ag-td--desc {
     color: var(--ei-muted);
   }
+  /* Long product descriptions clamp to 3 lines and expand on click (JS toggles
+     .is-open). The full text is always in the DOM (SEO); this is display-only. */
   .ag-clamp {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-wrap: pretty;
+  }
+  .ag-clamp.is-clickable {
+    cursor: pointer;
+  }
+  .ag-clamp.is-open {
+    -webkit-line-clamp: unset;
+    display: block;
+  }
+  .ag-clamp__more {
+    display: inline-block;
+    margin-top: 0.15rem;
+    color: var(--ei-accent-text);
+    font-size: 0.82rem;
+    font-weight: 600;
   }
   .ag-td--unit {
     color: var(--ei-muted);

@@ -41,6 +41,18 @@ async function fetchText(url: string): Promise<string> {
   return res.text()
 }
 
+/**
+ * Default a category with no image to the self-hosted convention
+ * `/categories/<slug>.jpg`. Lets a blank sheet cell still pick up a bundled image
+ * (e.g. suplimente-functionale); a missing file just triggers the tile's onerror
+ * placeholder, so it's always safe.
+ */
+function withImageFallback(categories: Category[]): Category[] {
+  return categories.map((c) =>
+    c.imagine ? c : { ...c, imagine: `/categories/${c.slug}.jpg` },
+  )
+}
+
 let catalogPromise: Promise<Catalog> | null = null
 /**
  * The catalog (build time). Prefers a valid new-schema sheet pair; otherwise the
@@ -60,13 +72,13 @@ export function loadCatalog(): Promise<Catalog> {
           // Only adopt the sheets when BOTH parse as non-empty new-schema data
           // (and there is at least one L1). Otherwise the bundle wins.
           if (categories.length && products.length && categories.some((c) => c.level === 'L1')) {
-            return { categories, products }
+            return { categories: withImageFallback(categories), products }
           }
         } catch {
           /* fall through to the bundle */
         }
       }
-      return bundleCatalog
+      return { ...bundleCatalog, categories: withImageFallback(bundleCatalog.categories) }
     })()
   }
   return catalogPromise
