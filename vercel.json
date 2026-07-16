@@ -132,6 +132,112 @@
       "source": "/catalog",
       "destination": "/produse",
       "permanent": true
+    },
+
+    {
+      "source": "/shop",
+      "destination": "/produse",
+      "permanent": true
+    },
+    {
+      "source": "/shop/:path*",
+      "destination": "/produse",
+      "permanent": true
+    },
+    {
+      "source": "/product-category/:path*",
+      "destination": "/produse",
+      "permanent": true
+    },
+    {
+      "source": "/product/:path*",
+      "destination": "/produse",
+      "permanent": true
+    },
+    {
+      "source": "/produs/:path*",
+      "destination": "/produse",
+      "permanent": true
+    },
+    {
+      "source": "/cereale-pseudocereale",
+      "destination": "/produse/cereale-pseudocereale-vrac",
+      "permanent": true
+    },
+    {
+      "source": "/cereale-pseudocereale/:path*",
+      "destination": "/produse/cereale-pseudocereale-vrac",
+      "permanent": true
+    },
+    {
+      "source": "/fructe",
+      "destination": "/produse/fructe",
+      "permanent": true
+    },
+    {
+      "source": "/fructe/:path*",
+      "destination": "/produse/fructe",
+      "permanent": true
+    },
+    {
+      "source": "/condimente",
+      "destination": "/produse/condimente-ierburi-arome-vrac",
+      "permanent": true
+    },
+    {
+      "source": "/condimente/:path*",
+      "destination": "/produse/condimente-ierburi-arome-vrac",
+      "permanent": true
+    },
+    {
+      "source": "/suplimente-alimentare",
+      "destination": "/produse/suplimente-functionale",
+      "permanent": true
+    },
+    {
+      "source": "/suplimente-alimentare/:path*",
+      "destination": "/produse/suplimente-functionale",
+      "permanent": true
+    },
+    {
+      "source": "/blog",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/blog/:path*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/cart",
+      "destination": "/produse",
+      "permanent": true
+    },
+    {
+      "source": "/cos",
+      "destination": "/produse",
+      "permanent": true
+    },
+    {
+      "source": "/checkout",
+      "destination": "/produse",
+      "permanent": true
+    },
+    {
+      "source": "/finalizare-comanda",
+      "destination": "/produse",
+      "permanent": true
+    },
+    {
+      "source": "/my-account",
+      "destination": "/produse",
+      "permanent": true
+    },
+    {
+      "source": "/contul-meu",
+      "destination": "/produse",
+      "permanent": true
     }
   ],
   "headers": [
