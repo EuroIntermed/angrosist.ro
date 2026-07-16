@@ -1,0 +1,32 @@
+---
+import CategoryLanding from '../../components/CategoryLanding.astro'
+import {
+  loadL1,
+  loadSubcategories,
+  directProducts,
+  type CategoryWithCount,
+  type Product,
+} from '../../lib/catalog-data'
+
+export async function getStaticPaths() {
+  const l1s = await loadL1()
+  return Promise.all(
+    l1s.map(async (l1) => ({
+      params: { l1: l1.slug },
+      props: {
+        l1,
+        subcategories: await loadSubcategories(l1.slug),
+        direct: await directProducts(l1.slug),
+      },
+    })),
+  )
+}
+
+const { l1, subcategories, direct } = Astro.props as {
+  l1: CategoryWithCount
+  subcategories: CategoryWithCount[]
+  direct: Product[]
+}
+---
+
+<CategoryLanding locale="ro" l1={l1} subcategories={subcategories} direct={direct} />

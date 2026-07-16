@@ -1,8 +1,8 @@
 ---
 import CategoryGrid from '../components/CategoryGrid.astro'
-import { loadCatalog } from '../lib/catalog-data'
+import { loadL1 } from '../lib/catalog-data'
 
-const categories = await loadCatalog()
+const categories = await loadL1()
 ---
 
 <CategoryGrid locale="ro" categories={categories} />

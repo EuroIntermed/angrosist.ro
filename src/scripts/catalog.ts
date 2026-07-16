@@ -1,48 +1,49 @@
 /**
- * Produse catalog — CLIENT runtime.
+ * Produse catalog — CLIENT runtime (single leaf table).
  *
- * Renders a category's product TABLE from the embedded build-time rows, then
- * refreshes from the live sheet (PUBLIC_PRODUCTS_URL) in the background. Adds:
- *   - a text SEARCH box (filters by name / description / unit / category),
- *   - per-row MULTI-SELECT with a "order selected" action that sends ONE request
+ * A page's product table shows ONE leaf's products (a real L2 subcategory, or an
+ * L1's direct products). The rows are supplied at build time (embedded JSON); this
+ * runtime renders them, then OPTIONALLY refreshes from a live sheet — but only when
+ * that sheet is NEW-schema (parseProducts rejects the legacy sheet, so the
+ * build-time rows are kept). It adds:
+ *   - a text SEARCH box (filters by name / description / unit / subcategory),
+ *   - per-row MULTI-SELECT with an "order selected" action that sends ONE request
  *     listing every ticked product,
  *   - a per-row "Comandă" that always opens the WhatsApp/chat CHOOSER (order.ts),
- *     pre-filling a message with ALL the info we have (product, category, unit,
+ *     pre-filling a message with all the info we have (product, category, unit,
  *     details).
  *
- * All sheet text is rendered via textContent (untrusted input — Hard Rule #6);
- * image URLs are accepted only over http(s).
+ * All text is rendered via textContent (untrusted input — Hard Rule #6). Every
+ * element lookup is NULL-SAFE.
  */
-import {
-  parseProducts,
-  groupByCategory,
-  normKey,
-  sampleProducts,
-  type Product,
-  type CategoryGroup,
-} from '../lib/products'
+import { parseProducts, type Product } from '../lib/products'
 import { OrderSheet, placeOrder } from './order'
 
+/** The subset of product fields this runtime needs (sku is intentionally absent). */
+interface Row {
+  produs: string
+  subcatSlug: string
+  subcategorie: string
+  descriere: string
+  unitate: string
+  pret?: string
+}
+
 interface CatalogStrings {
-  filterAll: string
   loading: string
   empty: string
   error: string
   retry: string
-  sampleNote: string
   orderCta: string
-  imageAlt: string
-  headImage: string
-  headProduct: string
-  headCategory: string
-  headDesc: string
-  headUnit: string
-  headOrder: string
-  headSelect: string
   priceEmpty: string
   results: string
   searchPlaceholder: string
   searchEmpty: string
+  headProduct: string
+  headDesc: string
+  headUnit: string
+  headOrder: string
+  headSelect: string
   selectAll: string
   selectedCount: string
   orderSelected: string
@@ -52,20 +53,16 @@ interface CatalogConfig {
   productsUrl: string
   waNumber: string
   intent: string
+  /** Leaf slug — the live-sheet refresh is filtered to this subcatSlug. */
+  leafSlug: string
+  /** Category label used in the order message (the leaf subcategorie). */
+  categoryLabel: string
   /** Single-product message template ({product}/{category}/{unit}/{details}). */
   orderTemplate: string
   /** Multi-product message parts (intro/{category}, per item, outro). */
   orderMultiIntro: string
   orderMultiItem: string
   orderMultiOutro: string
-  /**
-   * Single-category mode: when set (a category display name), the runtime shows
-   * ONLY that category's products and suppresses the category filter chips. Used
-   * by the per-category pages (/produse/[slug]).
-   */
-  category?: string
-  /** Localised category name for the message (EN name on EN pages). */
-  categoryLabel?: string
   strings: CatalogStrings
 }
 
@@ -80,8 +77,8 @@ function readJson<T>(selector: string): T | null {
 }
 
 /** Stable identity for a product row (name + unit + details distinguish variants). */
-function productKey(p: Product): string {
-  return `${p.produs}${p.unitate}${p.descriere}`
+function productKey(p: Row): string {
+  return `${p.produs}${p.unitate}${p.descriere}`
 }
 
 function td(label: string, className: string): HTMLTableCellElement {
@@ -92,18 +89,18 @@ function td(label: string, className: string): HTMLTableCellElement {
 }
 
 interface RowHandlers {
-  onOrder: (p: Product) => void
-  onToggle: (p: Product, checked: boolean) => void
-  isSelected: (p: Product) => boolean
+  onOrder: (p: Row) => void
+  onToggle: (p: Row, checked: boolean) => void
+  isSelected: (p: Row) => boolean
 }
 
-function row(p: Product, cfg: CatalogConfig, h: RowHandlers): HTMLTableRowElement {
+function row(p: Row, cfg: CatalogConfig, h: RowHandlers): HTMLTableRowElement {
   const s = cfg.strings
   const tr = document.createElement('tr')
   tr.className = 'ag-row'
-  tr.dataset.category = p.categorie || '—'
+  tr.dataset.category = p.subcategorie || '—'
   tr.dataset.key = productKey(p)
-  tr.dataset.search = `${p.produs} ${p.descriere} ${p.unitate} ${p.categorie}`.toLowerCase()
+  tr.dataset.search = `${p.produs} ${p.descriere} ${p.unitate} ${p.subcategorie}`.toLowerCase()
 
   // Select checkbox (leading).
   const checkCell = td(s.headSelect, 'ag-td ag-td--check')
@@ -147,17 +144,17 @@ function row(p: Product, cfg: CatalogConfig, h: RowHandlers): HTMLTableRowElemen
 }
 
 /** Fill a single-product template with everything we know. */
-function buildMessage(cfg: CatalogConfig, p: Product): string {
+function buildMessage(cfg: CatalogConfig, p: Row): string {
   return cfg.orderTemplate
     .replace('{product}', p.produs)
-    .replace('{category}', cfg.categoryLabel || p.categorie || '—')
+    .replace('{category}', cfg.categoryLabel || p.subcategorie || '—')
     .replace('{unit}', p.unitate || '—')
     .replace('{details}', p.descriere || '—')
 }
 
 /** Build one request listing several products. */
-function buildMultiMessage(cfg: CatalogConfig, products: Product[]): string {
-  const category = cfg.categoryLabel || cfg.category || products[0]?.categorie || '—'
+function buildMultiMessage(cfg: CatalogConfig, products: Row[]): string {
+  const category = cfg.categoryLabel || products[0]?.subcategorie || '—'
   const intro = cfg.orderMultiIntro.replace('{category}', category)
   const items = products.map((p, i) =>
     cfg.orderMultiItem
@@ -169,62 +166,31 @@ function buildMultiMessage(cfg: CatalogConfig, products: Product[]): string {
   return [intro, ...items, cfg.orderMultiOutro].join('\n')
 }
 
-function renderFilters(
-  container: HTMLElement,
-  groups: CategoryGroup[],
-  allLabel: string,
-  onPick: (cat: string | null) => void,
-): void {
-  container.replaceChildren()
-  const make = (label: string, value: string | null, active: boolean) => {
-    const b = document.createElement('button')
-    b.type = 'button'
-    b.className = 'ag-chip' + (active ? ' is-active' : '')
-    b.textContent = label
-    b.setAttribute('role', 'tab')
-    b.setAttribute('aria-selected', String(active))
-    b.addEventListener('click', () => {
-      container.querySelectorAll('.ag-chip').forEach((c) => {
-        c.classList.remove('is-active')
-        c.setAttribute('aria-selected', 'false')
-      })
-      b.classList.add('is-active')
-      b.setAttribute('aria-selected', 'true')
-      onPick(value)
-    })
-    return b
-  }
-  container.appendChild(make(allLabel, null, true))
-  groups.forEach((g) => container.appendChild(make(g.categorie, g.categorie, false)))
-}
-
 function initCatalog(): void {
   const root = document.querySelector<HTMLElement>('[data-catalog-root]')
   if (!root) return
   const cfg = readJson<CatalogConfig>('[data-catalog-config]')
   if (!cfg) return
-  const fallback = readJson<Product[]>('[data-catalog-fallback]') ?? sampleProducts
+  const fallback = readJson<Row[]>('[data-catalog-fallback]') ?? []
 
-  const statusEl = root.querySelector<HTMLElement>('[data-catalog-status]')!
-  const filtersEl = root.querySelector<HTMLElement>('[data-catalog-filters]')
-  const countEl = root.querySelector<HTMLElement>('[data-catalog-count]')!
-  const wrapEl = root.querySelector<HTMLElement>('[data-catalog-table-wrap]')!
-  const tbodyEl = root.querySelector<HTMLElement>('[data-catalog-tbody]')!
-  // Nullable: the per-category page has no "sample note" element.
-  const noteEl = root.querySelector<HTMLElement>('[data-catalog-note]')
+  const statusEl = root.querySelector<HTMLElement>('[data-catalog-status]')
+  const countEl = root.querySelector<HTMLElement>('[data-catalog-count]')
+  const wrapEl = root.querySelector<HTMLElement>('[data-catalog-table-wrap]')
+  const tbodyEl = root.querySelector<HTMLElement>('[data-catalog-tbody]')
+  if (!tbodyEl || !wrapEl) return
   const searchEl = root.querySelector<HTMLInputElement>('[data-catalog-search]')
   const selectAllEl = root.querySelector<HTMLInputElement>('[data-catalog-selectall]')
-  const selBar = document.querySelector<HTMLElement>('[data-catalog-selbar]')
+  const selBar = root.querySelector<HTMLElement>('[data-catalog-selbar]')
   const selCountEl = selBar?.querySelector<HTMLElement>('[data-sel-count]') ?? null
   const selOrderBtn = selBar?.querySelector<HTMLButtonElement>('[data-sel-order]') ?? null
   const selClearBtn = selBar?.querySelector<HTMLButtonElement>('[data-sel-clear]') ?? null
-  const sheetEl = document.querySelector<HTMLElement>('[data-order-sheet]')
+  const sheetEl = root.querySelector<HTMLElement>('[data-order-sheet]')
   const sheet = sheetEl ? new OrderSheet(sheetEl) : null
 
   // Selection persists across background re-renders (keyed by product identity).
-  const selected = new Map<string, Product>()
+  const selected = new Map<string, Row>()
 
-  const onOrder = (p: Product) => {
+  const onOrder = (p: Row) => {
     placeOrder(
       {
         productName: p.produs,
@@ -264,7 +230,7 @@ function initCatalog(): void {
     }
   }
 
-  const toggleSelect = (p: Product, checked: boolean) => {
+  const toggleSelect = (p: Row, checked: boolean) => {
     if (checked) selected.set(productKey(p), p)
     else selected.delete(productKey(p))
     updateSelBar()
@@ -272,7 +238,7 @@ function initCatalog(): void {
 
   const updateCount = () => {
     const visible = tbodyEl.querySelectorAll<HTMLElement>('.ag-row:not([hidden])').length
-    countEl.textContent = `${visible} ${cfg.strings.results}`
+    if (countEl) countEl.textContent = `${visible} ${cfg.strings.results}`
   }
 
   const applySearch = () => {
@@ -284,7 +250,7 @@ function initCatalog(): void {
       if (match) visible++
     })
     // Empty-search state uses the status slot without wiping the table.
-    if (q && visible === 0) {
+    if (statusEl && q && visible === 0) {
       statusEl.replaceChildren()
       statusEl.className = 'ag-catalog__status is-empty'
       const p = document.createElement('p')
@@ -293,36 +259,12 @@ function initCatalog(): void {
       statusEl.hidden = false
       wrapEl.hidden = true
     } else {
-      statusEl.hidden = true
+      if (statusEl) statusEl.hidden = true
       wrapEl.hidden = false
     }
     updateCount()
     updateSelBar()
   }
-
-  const setStatus = (msg: string, kind: 'loading' | 'error' | 'empty' | '', withRetry = false) => {
-    statusEl.replaceChildren()
-    statusEl.hidden = !msg
-    if (!msg) return
-    statusEl.className = 'ag-catalog__status' + (kind ? ` is-${kind}` : '')
-    const p = document.createElement('p')
-    p.textContent = msg
-    statusEl.appendChild(p)
-    if (withRetry) {
-      const b = document.createElement('button')
-      b.type = 'button'
-      b.className = 'ag-btn ag-btn--secondary'
-      b.textContent = cfg.strings.retry
-      b.addEventListener('click', () => load())
-      statusEl.appendChild(b)
-    }
-  }
-
-  // Single-category pages pass cfg.category — keep only that category's rows.
-  const limitToCategory = (products: Product[]): Product[] =>
-    cfg.category
-      ? products.filter((p) => normKey(p.categorie) === normKey(cfg.category as string))
-      : products
 
   const rowHandlers: RowHandlers = {
     onOrder,
@@ -330,24 +272,9 @@ function initCatalog(): void {
     isSelected: (p) => selected.has(productKey(p)),
   }
 
-  const render = (groups: CategoryGroup[], sample: boolean) => {
-    setStatus('', '')
-    if (noteEl) noteEl.hidden = !sample
-    if (filtersEl) {
-      if (cfg.category) {
-        filtersEl.hidden = true
-      } else {
-        renderFilters(filtersEl, groups, cfg.strings.filterAll, (cat) => {
-          tbodyEl.querySelectorAll<HTMLElement>('.ag-row').forEach((tr) => {
-            tr.hidden = cat != null && tr.dataset.category !== cat
-          })
-          updateCount()
-        })
-        filtersEl.hidden = false
-      }
-    }
+  const render = (products: Row[]) => {
     tbodyEl.replaceChildren()
-    groups.forEach((g) => g.items.forEach((p) => tbodyEl.appendChild(row(p, cfg, rowHandlers))))
+    products.forEach((p) => tbodyEl.appendChild(row(p, cfg, rowHandlers)))
 
     // Prune selections whose product is no longer present (after a refresh).
     if (selected.size) {
@@ -358,68 +285,29 @@ function initCatalog(): void {
     }
 
     wrapEl.hidden = false
-    countEl.hidden = false
+    if (countEl) countEl.hidden = false
     applySearch() // applies search filter + updates count + selection bar
   }
 
-  const showFallback = (sample = true) => {
-    const groups = groupByCategory(limitToCategory(fallback))
-    if (groups.length) render(groups, sample)
-    else setStatus(cfg.strings.empty, 'empty')
-  }
-
-  const fetchGroups = async (): Promise<CategoryGroup[]> => {
-    const res = await fetch(cfg.productsUrl, {
-      headers: { Accept: 'text/csv, application/json' },
-      cache: 'default',
-    })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    return groupByCategory(limitToCategory(parseProducts(await res.text())))
-  }
-
-  const load = async () => {
-    // Single-category pages already carry build-time rows + data. Render the
-    // embedded rows INSTANTLY, then refresh from the live sheet in the background
-    // and swap in only on success. A slow/failed/CORS'd fetch leaves the
-    // build-time table in place — the page is never blanked.
-    if (cfg.category) {
-      showFallback(false)
-      if (!cfg.productsUrl) return
-      try {
-        const groups = await fetchGroups()
-        if (groups.length) render(groups, false)
-      } catch {
-        /* keep the build-time rows already on screen */
-      }
-      return
-    }
-
-    // Full catalog (no live rows pre-rendered): loading → live | empty | error.
-    if (filtersEl) filtersEl.hidden = true
-    countEl.hidden = true
-    wrapEl.hidden = true
-    if (noteEl) noteEl.hidden = true
-    tbodyEl.replaceChildren()
-
-    if (!cfg.productsUrl) {
-      showFallback()
-      return
-    }
-
-    setStatus(cfg.strings.loading, 'loading')
+  // Refresh from a live NEW-schema sheet, filtered to THIS leaf. A legacy sheet
+  // parses to [] (parseProducts rejects it) → we keep the build-time rows.
+  const refresh = async () => {
+    if (!cfg.productsUrl || !cfg.leafSlug) return
     try {
-      const groups = await fetchGroups()
-      if (!groups.length) {
-        setStatus(cfg.strings.empty, 'empty')
-        return
-      }
-      render(groups, false)
+      const res = await fetch(cfg.productsUrl, {
+        headers: { Accept: 'text/csv, application/json' },
+        cache: 'default',
+      })
+      if (!res.ok) return
+      const parsed: Product[] = parseProducts(await res.text())
+      const leaf = parsed.filter((p) => p.subcatSlug === cfg.leafSlug)
+      if (leaf.length) render(leaf)
     } catch {
-      setStatus(cfg.strings.error, 'error', true)
+      /* keep the build-time rows already on screen */
     }
   }
 
-  // Wire the toolbar controls (present only on category pages).
+  // Wire the toolbar controls.
   searchEl?.addEventListener('input', applySearch)
   selectAllEl?.addEventListener('change', () => {
     const check = selectAllEl.checked
@@ -441,7 +329,10 @@ function initCatalog(): void {
     updateSelBar()
   })
 
-  load()
+  // Render the embedded build-time rows immediately (they are already in the SSR
+  // table too; re-rendering wires the JS handlers), then refresh in the background.
+  render(fallback)
+  refresh()
 }
 
 initCatalog()

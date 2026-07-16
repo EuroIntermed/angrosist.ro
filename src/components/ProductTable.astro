@@ -1,0 +1,183 @@
+---
+/**
+ * ProductTable — the reusable product table for ONE leaf (a real L2 subcategory,
+ * or an L1's direct products). Renders the toolbar (search), the server-rendered
+ * table (SEO + no-JS), the multi-select action bar and the device-aware order
+ * chooser sheet, then wires src/scripts/catalog.ts for search + multi-select +
+ * the "Comandă" flow (order.ts). Reused by the L2 leaf page and by the L1 landing.
+ *
+ * The rows are supplied at build time (a pre-filtered product list) — the client
+ * does NOT filter a global sheet by category name. A live refresh only happens if
+ * PUBLIC_PRODUCTS_URL is new-schema; otherwise the build-time rows stay in place.
+ *
+ * SKU stays internal: it is NEVER rendered nor embedded in the page.
+ */
+import type { Locale } from '../i18n/ui'
+import { t } from '../i18n/utils'
+import { waLink, productsUrl, whatsappNumber } from '../lib/config'
+import type { Product } from '../lib/catalog-data'
+import CatalogTableStyles from './CatalogTableStyles.astro'
+
+interface Props {
+  locale: Locale
+  /** Build-time products for this leaf (already filtered + sorted). */
+  products: Product[]
+  /** Leaf slug (subcatSlug) — used to filter a live-sheet refresh, if any. */
+  leafSlug: string
+  /** Display name used as the "category" in the order message (leaf subcategorie). */
+  categoryLabel: string
+}
+const { locale, products, leafSlug, categoryLabel } = Astro.props as Props
+const c = t(locale)
+const cat = c.catalog
+const rows = products
+
+// No-JS wa.me fallback — includes all the product info we have.
+const orderMessage = (p: { produs: string; unitate: string; descriere: string }) =>
+  c.order.message
+    .replace('{product}', p.produs)
+    .replace('{category}', categoryLabel)
+    .replace('{unit}', p.unitate || '—')
+    .replace('{details}', p.descriere || '—')
+
+// Client config. The runtime renders the embedded rows and (optionally) refreshes
+// from a NEW-schema live sheet filtered to this leaf.
+const catalogConfig = {
+  productsUrl,
+  waNumber: whatsappNumber,
+  intent: 'buy',
+  leafSlug,
+  categoryLabel,
+  orderTemplate: c.order.message,
+  orderMultiIntro: c.order.messageMultiIntro,
+  orderMultiItem: c.order.messageMultiItem,
+  orderMultiOutro: c.order.messageMultiOutro,
+  strings: {
+    loading: cat.loading,
+    empty: cat.empty,
+    error: cat.error,
+    retry: cat.retry,
+    orderCta: cat.orderCta,
+    priceEmpty: cat.priceEmpty,
+    results: cat.results,
+    searchPlaceholder: cat.searchPlaceholder,
+    searchEmpty: cat.searchEmpty,
+    headProduct: cat.headProduct,
+    headDesc: cat.headDesc,
+    headUnit: cat.headUnit,
+    headOrder: cat.headOrder,
+    headSelect: cat.headSelect,
+    selectAll: cat.selectAll,
+    selectedCount: cat.selectedCount,
+    orderSelected: cat.orderSelected,
+    clearSelection: cat.clearSelection,
+  },
+}
+
+// Products embedded for the client — WITHOUT sku (internal only).
+const clientRows = rows.map((p) => ({
+  produs: p.produs,
+  l1Slug: p.l1Slug,
+  subcatSlug: p.subcatSlug,
+  subcategorie: p.subcategorie,
+  descriere: p.descriere,
+  unitate: p.unitate,
+  pret: p.pret,
+}))
+---
+
+{
+  rows.length === 0 ? (
+    <div class="ag-catalog__status is-empty">
+      <p>{cat.empty}</p>
+    </div>
+  ) : (
+    <div data-catalog-root>
+      <div class="ag-catalog__toolbar ag-catalog__toolbar--search">
+        <div class="ag-search">
+          <svg class="ag-search__icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+          <input type="search" class="ag-search__input" data-catalog-search placeholder={cat.searchPlaceholder} aria-label={cat.searchPlaceholder} autocomplete="off" />
+        </div>
+        <p class="ag-catalog__count" data-catalog-count aria-live="polite">{rows.length} {cat.results}</p>
+      </div>
+      <p class="ag-catalog__hint">{cat.selectHint}</p>
+
+      <div class="ag-catalog__status" data-catalog-status hidden></div>
+
+      <div class="ag-table-wrap" data-catalog-table-wrap>
+        <table class="ag-table ag-table--select">
+          <thead>
+            <tr>
+              <th scope="col" class="ag-th ag-th--check"><input type="checkbox" class="ag-check" data-catalog-selectall aria-label={cat.selectAll} /></th>
+              <th scope="col" class="ag-th ag-th--name">{cat.headProduct}</th>
+              <th scope="col" class="ag-th ag-th--desc">{cat.headDesc}</th>
+              <th scope="col" class="ag-th ag-th--unit">{cat.headUnit}</th>
+              <th scope="col" class="ag-th ag-th--order"><span class="ei-sr-only">{cat.headOrder}</span></th>
+            </tr>
+          </thead>
+          <tbody data-catalog-tbody>
+            {
+              rows.map((p) => (
+                <tr class="ag-row" data-category={p.subcategorie || '—'}>
+                  <td class="ag-td ag-td--check" data-label={cat.headSelect}>
+                    <input type="checkbox" class="ag-check" aria-label={`${cat.headSelect}: ${p.produs}`} />
+                  </td>
+                  <td class="ag-td ag-td--name" data-label={cat.headProduct}><span class="ag-row__name">{p.produs}</span></td>
+                  <td class="ag-td ag-td--desc" data-label={cat.headDesc}><span class="ag-clamp">{p.descriere}</span></td>
+                  <td class="ag-td ag-td--unit" data-label={cat.headUnit}>{p.unitate || cat.priceEmpty}</td>
+                  <td class="ag-td ag-td--order">
+                    <a
+                      class="ag-btn ag-btn--primary ag-row__order"
+                      href={waLink(orderMessage(p))}
+                      target="_blank"
+                      rel="noopener"
+                      data-ga-vertical="whatsapp"
+                    >
+                      {cat.orderCta}
+                    </a>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Selection action bar — slides up when products are ticked (catalog.ts) -->
+      <div class="ag-selbar" data-catalog-selbar role="region" aria-label={cat.orderSelected} hidden>
+        <div class="ei-container ag-selbar__inner">
+          <span class="ag-selbar__count" data-sel-count>{cat.selectedCount.replace('{n}', '0')}</span>
+          <div class="ag-selbar__actions">
+            <button type="button" class="ag-btn ag-btn--secondary" data-sel-clear>{cat.clearSelection}</button>
+            <button type="button" class="ag-btn ag-btn--primary" data-sel-order>{cat.orderSelected}</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile order chooser (accessible dialog; controlled by order.ts) -->
+      <div class="ag-sheet" data-order-sheet role="dialog" aria-modal="true" aria-labelledby="ag-sheet-title" aria-describedby="ag-sheet-body" hidden>
+        <div class="ag-sheet__backdrop" data-order-close></div>
+        <div class="ag-sheet__panel">
+          <button type="button" class="ag-sheet__close" data-order-close aria-label={c.order.close}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          </button>
+          <h2 id="ag-sheet-title">{c.order.sheetTitle}</h2>
+          <p id="ag-sheet-body" class="ag-sheet__body">{c.order.sheetBody}</p>
+          <p class="ag-sheet__product" data-order-product></p>
+          <div class="ag-sheet__actions">
+            <button type="button" class="ag-btn ag-btn--whatsapp" data-order-whatsapp>{c.order.whatsapp}</button>
+            <button type="button" class="ag-btn ag-btn--secondary" data-order-widget>{c.order.widget}</button>
+          </div>
+        </div>
+      </div>
+
+      <script type="application/json" data-catalog-config is:inline set:html={JSON.stringify(catalogConfig)} />
+      <script type="application/json" data-catalog-fallback is:inline set:html={JSON.stringify(clientRows)} />
+      <script>
+        import '../scripts/catalog.ts'
+      </script>
+    </div>
+  )
+}
+
+<CatalogTableStyles />

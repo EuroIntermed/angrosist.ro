@@ -1,0 +1,208 @@
+---
+/**
+ * CategoryLanding — an L1 (top category) page: /produse/[l1].
+ *
+ * Renders a back-link to the overview, the L1 hero (image + localized name +
+ * total count + intro), then:
+ *   - its real L2 subcategory tiles (→ /produse/[l1]/[l2]), and/or
+ *   - a product TABLE of the L1's DIRECT products (subcatSlug === l1Slug).
+ * An L1 with no real L2 (a "leaf" L1) skips the tiles and renders only the table.
+ *
+ * SEO: title/description from the L1 name + count; JSON-LD ItemList of the
+ * subcategories (or of the products for a leaf L1) + a BreadcrumbList
+ * Home › Produse › L1.
+ */
+import type { Locale } from '../i18n/ui'
+import { t, localizePath } from '../i18n/utils'
+import { categoryName } from '../lib/categories'
+import type { CategoryWithCount, Product } from '../lib/catalog-data'
+import BaseLayout from './BaseLayout.astro'
+import CategoryTiles from './CategoryTiles.astro'
+import ProductTable from './ProductTable.astro'
+
+interface Props {
+  locale: Locale
+  l1: CategoryWithCount
+  subcategories: CategoryWithCount[]
+  direct: Product[]
+}
+const { locale, l1, subcategories, direct } = Astro.props as Props
+const c = t(locale)
+const cat = c.catalog
+
+const displayName = categoryName(l1, locale)
+const title = cat.categoryMetaTitle.replace('{category}', displayName)
+const description = cat.categoryMetaDescription
+  .replace('{category}', displayName)
+  .replace('{count}', String(l1.count))
+const intro = cat.categoryIntro.replace('{category}', displayName)
+const produseHref = localizePath('/produse', locale)
+const l1Base = localizePath(`/produse/${l1.slug}`, locale)
+
+const hasSubs = subcategories.length > 0
+const hasDirect = direct.length > 0
+const directLabel = direct[0]?.subcategorie || displayName
+
+// Breadcrumb (Home › Produse › L1) — absolute URLs from the build site origin.
+const abs = (path: string) => new URL(localizePath(path, locale), Astro.site).href
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: c.nav.home, item: abs('/') },
+    { '@type': 'ListItem', position: 2, name: c.nav.produse, item: abs('/produse') },
+    { '@type': 'ListItem', position: 3, name: displayName, item: abs(`/produse/${l1.slug}`) },
+  ],
+}
+
+// ItemList: subcategories for a branch L1, else the products for a leaf L1.
+const itemListJsonLd = hasSubs
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: title,
+      itemListElement: subcategories.map((s, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: categoryName(s, locale),
+        url: new URL(`${l1Base}/${s.slug}`, Astro.site).href,
+      })),
+    }
+  : {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: title,
+      itemListElement: direct.map((p, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        item: {
+          '@type': 'Product',
+          name: p.produs,
+          category: p.subcategorie,
+          description: p.descriere,
+        },
+      })),
+    }
+
+const hasHero = /^(https?:\/\/|\/)/i.test(l1.imagine)
+---
+
+<BaseLayout locale={locale} title={title} description={description}>
+  <Fragment slot="head">
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(breadcrumbJsonLd)} />
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(itemListJsonLd)} />
+  </Fragment>
+
+  <section class="ag-catalog">
+    <div class="ei-container">
+      <a class="ag-cat-back" href={produseHref}>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+        {cat.backToCategories}
+      </a>
+
+      <header class="ag-cat-hero" data-reveal>
+        <div class="ag-cat-hero__text">
+          <p class="ei-eyebrow">{cat.eyebrow}</p>
+          <h1>{displayName}</h1>
+          <p class="ei-lead">{intro}</p>
+          <p class="ag-cat-hero__count"><strong>{l1.count}</strong> {cat.results}</p>
+        </div>
+        {hasHero && (
+          <div class="ag-cat-hero__media">
+            <img src={l1.imagine} alt={displayName} loading="eager" decoding="async" width="640" height="420" onerror="this.closest('.ag-cat-hero__media')?.remove()" />
+          </div>
+        )}
+      </header>
+
+      {hasSubs && (
+        <section class="ag-landing__subs" aria-labelledby="subs-title">
+          <h2 id="subs-title" class="ag-landing__h2">{cat.subcategoriesTitle}</h2>
+          <CategoryTiles locale={locale} categories={subcategories} basePath={l1Base} />
+        </section>
+      )}
+
+      {hasDirect && (
+        <section class="ag-landing__direct" aria-labelledby="direct-title">
+          <h2 id="direct-title" class="ag-landing__h2">{cat.directProductsTitle.replace('{category}', displayName)}</h2>
+          <ProductTable locale={locale} products={direct} leafSlug={l1.slug} categoryLabel={directLabel} />
+        </section>
+      )}
+
+      {!hasSubs && !hasDirect && (
+        <div class="ag-catalog__status is-empty"><p>{cat.empty}</p></div>
+      )}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .ag-catalog {
+    padding-block: clamp(2.5rem, 2rem + 4vw, 5rem);
+  }
+  .ag-cat-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 1.5rem;
+    color: var(--ei-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s var(--ei-ease);
+  }
+  .ag-cat-back:hover {
+    color: var(--ei-accent-strong);
+  }
+  .ag-cat-hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem 2.5rem;
+    align-items: center;
+    margin-bottom: 2.2rem;
+  }
+  .ag-cat-hero__text {
+    max-width: 60ch;
+  }
+  .ag-cat-hero__text h1 {
+    margin-top: 0.7rem;
+  }
+  .ag-cat-hero__text .ei-lead {
+    margin-top: 0.9rem;
+  }
+  .ag-cat-hero__count {
+    margin-top: 1.1rem;
+    color: var(--ei-faint);
+    font-size: 0.95rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .ag-cat-hero__count strong {
+    color: var(--ei-accent-strong);
+    font-size: 1.15rem;
+  }
+  .ag-cat-hero__media {
+    border-radius: var(--ei-radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--ei-hairline);
+    box-shadow: var(--ei-shadow-md);
+    aspect-ratio: 16 / 10;
+    background: var(--ei-accent-soft);
+  }
+  .ag-cat-hero__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  @media (min-width: 860px) {
+    .ag-cat-hero {
+      grid-template-columns: 1.15fr 0.85fr;
+    }
+  }
+  .ag-landing__h2 {
+    margin-bottom: 1.4rem;
+    font-size: 1.35rem;
+  }
+  .ag-landing__direct {
+    margin-top: 3rem;
+  }
+</style>

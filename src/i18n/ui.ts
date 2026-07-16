@@ -288,6 +288,9 @@ const ro = {
     categoriesWord: 'categorii',
     viewProducts: 'Vezi produsele',
     backToCategories: 'Toate categoriile',
+    // 3-level browse: L1 page section headings.
+    subcategoriesTitle: 'Subcategorii',
+    directProductsTitle: 'Produse din {category}',
     // Search + multi-select toolbar on a category page.
     searchPlaceholder: 'Caută în categorie…',
     searchEmpty: 'Niciun produs pentru „{q}".',
@@ -698,6 +701,9 @@ const en: typeof ro = {
     categoriesWord: 'categories',
     viewProducts: 'View products',
     backToCategories: 'All categories',
+    // 3-level browse: L1 page section headings.
+    subcategoriesTitle: 'Subcategories',
+    directProductsTitle: 'Products in {category}',
     // Search + multi-select toolbar on a category page.
     searchPlaceholder: 'Search in category…',
     searchEmpty: 'No products for “{q}”.',

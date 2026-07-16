@@ -1,32 +1,40 @@
 ---
 /**
  * CategoryTiles — the shared responsive grid of category tiles (hero image, name,
- * live product count) each linking to its own page (/produse/[slug]). Used by the
- * /produse overview (all categories) and the homepage section (a `limit`ed teaser).
- * Names are localised (EN falls back to RO). Images degrade to a themed initial.
+ * product count) each linking to a child page. Reused for:
+ *   - the /produse overview → each L1 tile links to /produse/[l1]
+ *   - an L1 page → each L2 subcategory tile links to /produse/[l1]/[l2]
+ *   - the homepage teaser (a `limit`ed set of L1 tiles)
+ * The destination is `${basePath}/${slug}`; the caller passes the already-localised
+ * `basePath`. Names are localised (EN falls back to RO). Images accept both an
+ * absolute http(s) URL and a root-relative path (e.g. /categories/x.jpg) and
+ * degrade to a themed initial if absent or failing to load.
  */
 import type { Locale } from '../i18n/ui'
-import { t, localizePath } from '../i18n/utils'
+import { t } from '../i18n/utils'
 import { categoryName } from '../lib/categories'
-import type { CategoryWithProducts } from '../lib/catalog-data'
+import type { CategoryWithCount } from '../lib/catalog-data'
 
 interface Props {
   locale: Locale
-  categories: CategoryWithProducts[]
+  categories: CategoryWithCount[]
+  /** Localised parent path; tiles link to `${basePath}/${slug}`. */
+  basePath: string
   /** Cap the number of tiles (homepage teaser). Omit to show all. */
   limit?: number
 }
-const { locale, categories, limit } = Astro.props as Props
+const { locale, categories, basePath, limit } = Astro.props as Props
 const cat = t(locale).catalog
 const list = typeof limit === 'number' ? categories.slice(0, limit) : categories
+const base = basePath.replace(/\/+$/, '')
 ---
 
 <ul class="ag-cats__grid" role="list">
   {
     list.map((g) => {
-      const href = localizePath(`/produse/${g.slug}`, locale)
+      const href = `${base}/${g.slug}`
       const name = categoryName(g, locale)
-      const hasImg = /^https?:\/\//i.test(g.imagine)
+      const hasImg = /^(https?:\/\/|\/)/i.test(g.imagine)
       return (
         <li class="ag-cat-card">
           <a class="ag-cat-card__link" href={href}>

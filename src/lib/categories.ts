@@ -1,45 +1,55 @@
 /**
- * Category showcase — data model, parser and bundled fallback.
+ * Category taxonomy — data model, parser and helpers (3-LEVEL).
  *
- * The category overview (/produse) and the per-category routes (/produse/[slug])
- * are driven by a published Google Sheet (CSV) fetched at BUILD time from
- * `PUBLIC_CATEGORIES_URL` (see src/lib/config.ts + src/lib/catalog-data.ts). This
- * module is pure/isomorphic so it can run at build time and be reasoned about in
- * tests.
+ * Categories drive the /produse overview (13 top-level "L1" tiles), the L1 pages
+ * (their real "L2" subcategory tiles) and the L2 leaf pages. The primary source is
+ * the bundled `src/data/catalog.json` (see src/lib/catalog-data.ts); a published
+ * Google Sheet (CSV/JSON) may override it, but only when it exposes the NEW schema.
+ * This module is pure/isomorphic so it can run at build time and in tests.
  *
- * SHEET SCHEMA — one category per row, header row required. Columns are matched
+ * NEW SHEET SCHEMA — one category per row, header row required. Columns are matched
  * case- and diacritic-insensitively:
  *
- *   categorie          (string)  display name, e.g. "Materii prime & auxiliare"
- *   slug               (string)  URL slug, e.g. "materii-prime-auxiliare"
- *   nr_produse         (number)  OPTIONAL indicative product count (badge)
- *   imagine_categorie  (string)  hero image URL (Drive links auto-converted)
- *   sursa              (string)  OPTIONAL source/reference URL (not rendered)
+ *   level          "L1" | "L2"  — presence of this column is what marks the payload
+ *                                 as new-schema (a legacy sheet without it → empty)
+ *   categorie      (string)  Romanian display name
+ *   categorie_en   (string)  English display name ('' → falls back to RO)
+ *   slug           (string)  URL slug
+ *   parent_slug    (string)  the L1 slug for an L2 row; '' for an L1 row
+ *   imagine        (string)  hero image URL/path (Drive links auto-converted)
+ *   nr_produse     (number)  indicative product count (badge fallback)
+ *   ordine         (number)  sort order (ascending)
  */
 import { driveImage, normKey, parseCsv } from './products'
 
 export interface Category {
+  /** Taxonomy depth. */
+  level: 'L1' | 'L2'
   categorie: string
-  /** English display name (optional column `categorie_en`); '' → falls back to RO. */
+  /** English display name ('' → falls back to the RO name). */
   categorieEn: string
   slug: string
+  /** For an L2: its L1 slug. For an L1: ''. */
+  parentSlug: string
   imagine: string
   nrProduse: number
-  sursa: string
+  ordine: number
 }
 
 /** Canonical column keys → accepted header aliases (normalised via normKey). */
 const COLUMN_ALIASES: Record<keyof Category, string[]> = {
+  level: ['level', 'nivel', 'lvl'],
   categorie: ['categorie', 'category', 'nume', 'name', 'denumire'],
   categorieEn: ['categorieen', 'categorieengleza', 'categoryen', 'nameen', 'denumireen', 'en', 'engleza'],
   slug: ['slug', 'url', 'cale', 'path'],
-  nrProduse: ['nrproduse', 'nrprod', 'count', 'produse', 'numarproduse', 'nr'],
+  parentSlug: ['parentslug', 'parent', 'parinte', 'parentcat', 'l1slug'],
   imagine: ['imaginecategorie', 'imagine', 'image', 'img', 'poza', 'foto', 'photo', 'hero'],
-  sursa: ['sursa', 'source', 'ref', 'link'],
+  nrProduse: ['nrproduse', 'nrprod', 'count', 'produse', 'numarproduse', 'nr'],
+  ordine: ['ordine', 'order', 'sort', 'ordonare', 'pozitie', 'position'],
 }
 
 /** The display name for a locale — EN falls back to the RO name when absent. */
-export function categoryName(c: Category, locale: 'ro' | 'en'): string {
+export function categoryName(c: Pick<Category, 'categorie' | 'categorieEn'>, locale: 'ro' | 'en'): string {
   return locale === 'en' && c.categorieEn ? c.categorieEn : c.categorie
 }
 
@@ -59,6 +69,10 @@ function toNum(v: unknown): number {
   return Number.isFinite(n) ? n : 0
 }
 
+function normLevel(v: string): 'L1' | 'L2' {
+  return normKey(v) === 'l2' ? 'L2' : 'L1'
+}
+
 function mapHeader(header: string[]): Partial<Record<keyof Category, number>> {
   const idx: Partial<Record<keyof Category, number>> = {}
   header.forEach((h, i) => {
@@ -71,15 +85,55 @@ function mapHeader(header: string[]): Partial<Record<keyof Category, number>> {
 }
 
 /**
- * Parse a raw categories CSV into Category rows. Rows without a display name are
- * dropped; a missing slug is derived from the name so routing never breaks.
+ * Parse a raw categories payload (CSV or JSON) into new-schema Category rows. A
+ * payload without a `level` column is treated as legacy / invalid and yields an
+ * EMPTY list, so the caller falls back to the bundle. Rows without a display name
+ * are dropped; a missing slug is derived from the name so routing never breaks.
  */
 export function parseCategories(raw: string): Category[] {
   const text = (raw || '').trim()
   if (!text) return []
+
+  // JSON source (array of objects, or { categories: [...] }).
+  if (text[0] === '[' || text[0] === '{') {
+    try {
+      const data = JSON.parse(text)
+      const arr: unknown[] = Array.isArray(data)
+        ? data
+        : Array.isArray((data as { categories?: unknown[] }).categories)
+          ? (data as { categories: unknown[] }).categories
+          : []
+      if (!arr.length) return []
+      const firstKeys = Object.keys(arr[0] as Record<string, unknown>).map(normKey)
+      if (!COLUMN_ALIASES.level.some((a) => firstKeys.includes(a))) return []
+      const seen = new Set<string>()
+      const out: Category[] = []
+      for (const r of arr) {
+        const obj = r as Record<string, unknown>
+        const byNorm: Record<string, unknown> = {}
+        for (const k of Object.keys(obj)) byNorm[normKey(k)] = obj[k]
+        const get = (key: keyof Category): string => {
+          for (const alias of COLUMN_ALIASES[key]) {
+            if (byNorm[alias] != null) return String(byNorm[alias])
+          }
+          return ''
+        }
+        const row = buildCategory(get)
+        if (!row || seen.has(row.slug)) continue
+        seen.add(row.slug)
+        out.push(row)
+      }
+      return out
+    } catch {
+      // Fall through to CSV.
+    }
+  }
+
   const rows = parseCsv(text)
   if (rows.length < 2) return []
   const idx = mapHeader(rows[0])
+  // Reject legacy sheets that lack the `level` column.
+  if (idx.level == null) return []
   const seen = new Set<string>()
   const out: Category[] = []
   for (const cols of rows.slice(1)) {
@@ -87,40 +141,27 @@ export function parseCategories(raw: string): Category[] {
       const i = idx[k]
       return i != null ? (cols[i] ?? '').trim() : ''
     }
-    const categorie = get('categorie')
-    if (!categorie) continue
-    const slug = get('slug') || slugify(categorie)
-    if (!slug || seen.has(slug)) continue
-    seen.add(slug)
-    out.push({
-      categorie,
-      categorieEn: get('categorieEn'),
-      slug,
-      imagine: driveImage(get('imagine')),
-      nrProduse: toNum(get('nrProduse')),
-      sursa: get('sursa'),
-    })
+    const row = buildCategory(get)
+    if (!row || seen.has(row.slug)) continue
+    seen.add(row.slug)
+    out.push(row)
   }
   return out
 }
 
-/**
- * Bundled SAMPLE fallback — the 12 top-level Angrosist categories with their
- * showcase hero images. Used when PUBLIC_CATEGORIES_URL is unset or the build-time
- * fetch fails, so the overview + routes always exist. Images are the owner's
- * public catalog photos (angrosist.ro uploads).
- */
-export const sampleCategories: Category[] = [
-  { categorie: 'Materii prime & auxiliare', categorieEn: 'Raw materials & auxiliaries', slug: 'materii-prime-auxiliare', nrProduse: 222, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/Materii-prime-auxiliare-1.jpg', sursa: '' },
-  { categorie: 'Cereale & pseudocereale', categorieEn: 'Cereals & pseudocereals', slug: 'cereale-pseudocereale', nrProduse: 79, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/Cereale-Pseudocereale-2.jpg', sursa: '' },
-  { categorie: 'Făină & pudre', categorieEn: 'Flours & powders', slug: 'faina-pudre', nrProduse: 28, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/faina.jpg', sursa: '' },
-  { categorie: 'Oleaginoase', categorieEn: 'Oilseeds & nuts', slug: 'oleaginoase', nrProduse: 55, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/OLEAGINOASE-2.jpg', sursa: '' },
-  { categorie: 'Plante - ceai', categorieEn: 'Herbs & tea', slug: 'plante-ceai', nrProduse: 356, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/plante-2.jpg', sursa: '' },
-  { categorie: 'Condimente', categorieEn: 'Spices', slug: 'condimente', nrProduse: 180, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/Condimente-2.jpg', sursa: '' },
-  { categorie: 'Gluten free', categorieEn: 'Gluten free', slug: 'gluten-free', nrProduse: 88, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/gluten-free-1.jpg', sursa: '' },
-  { categorie: 'Fructe', categorieEn: 'Fruits', slug: 'fructe', nrProduse: 86, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/Fructe-4.jpg', sursa: '' },
-  { categorie: 'Legume', categorieEn: 'Vegetables', slug: 'legume', nrProduse: 102, imagine: 'https://angrosist.ro/wp-content/uploads/2024/07/legume-e1720712466648.jpg', sursa: '' },
-  { categorie: 'Legume deshidratate', categorieEn: 'Dehydrated vegetables', slug: 'legume-deshidratate', nrProduse: 48, imagine: 'https://angrosist.ro/wp-content/uploads/2025/02/categorie-leguma-deschidratate.webp', sursa: '' },
-  { categorie: 'Suplimente alimentare', categorieEn: 'Food supplements', slug: 'suplimente-alimentare', nrProduse: 196, imagine: 'https://angrosist.ro/wp-content/uploads/2024/12/suplimente-alimentare.webp', sursa: '' },
-  { categorie: 'Mâncare gata preparată', categorieEn: 'Ready meals', slug: 'mancare-gata-preparata', nrProduse: 21, imagine: 'https://angrosist.ro/wp-content/uploads/2025/01/ready-food-home-hero-image-2.webp', sursa: '' },
-]
+function buildCategory(get: (k: keyof Category) => string): Category | null {
+  const categorie = get('categorie').trim()
+  if (!categorie) return null
+  const slug = get('slug').trim() || slugify(categorie)
+  if (!slug) return null
+  return {
+    level: normLevel(get('level')),
+    categorie,
+    categorieEn: get('categorieEn').trim(),
+    slug,
+    parentSlug: get('parentSlug').trim(),
+    imagine: driveImage(get('imagine').trim()),
+    nrProduse: toNum(get('nrProduse')),
+    ordine: toNum(get('ordine')),
+  }
+}

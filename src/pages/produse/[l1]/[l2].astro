@@ -1,0 +1,36 @@
+---
+import CategoryLeaf from '../../../components/CategoryLeaf.astro'
+import {
+  loadCatalog,
+  findL2,
+  loadProductsFor,
+  type CategoryWithCount,
+  type Product,
+} from '../../../lib/catalog-data'
+
+export async function getStaticPaths() {
+  const { categories } = await loadCatalog()
+  const l2s = categories.filter((c) => c.level === 'L2')
+  return Promise.all(
+    l2s.map(async (c) => {
+      const found = await findL2(c.slug)
+      return {
+        params: { l1: c.parentSlug, l2: c.slug },
+        props: {
+          l1: found!.l1,
+          l2: found!.l2,
+          products: await loadProductsFor(c.slug),
+        },
+      }
+    }),
+  )
+}
+
+const { l1, l2, products } = Astro.props as {
+  l1: CategoryWithCount
+  l2: CategoryWithCount
+  products: Product[]
+}
+---
+
+<CategoryLeaf locale="ro" l1={l1} l2={l2} products={products} />

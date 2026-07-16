@@ -1,25 +1,26 @@
 ---
 /**
- * CategoryGrid — the /produse overview. A responsive grid of category tiles, each
- * with the category's showcase hero image, name and (live) product count, linking
- * to its own page (/produse/[slug]). Fully server-rendered at build time from the
- * joined catalog data (SEO + no-JS); images degrade to a themed placeholder.
+ * CategoryGrid — the /produse overview. A responsive grid of the 13 top-level (L1)
+ * category tiles, each with its showcase hero image, name and product count,
+ * linking to its L1 page (/produse/[l1]). Fully server-rendered at build time from
+ * the bundled catalog (SEO + no-JS); images degrade to a themed placeholder.
  */
 import type { Locale } from '../i18n/ui'
 import { t, localizePath } from '../i18n/utils'
 import { categoryName } from '../lib/categories'
-import type { CategoryWithProducts } from '../lib/catalog-data'
+import type { CategoryWithCount } from '../lib/catalog-data'
 import BaseLayout from './BaseLayout.astro'
 import CategoryTiles from './CategoryTiles.astro'
 
 interface Props {
   locale: Locale
-  categories: CategoryWithProducts[]
+  categories: CategoryWithCount[]
 }
 const { locale, categories } = Astro.props as Props
 const c = t(locale)
 const cat = c.catalog
 const total = categories.reduce((n, g) => n + g.count, 0)
+const produseHref = localizePath('/produse', locale)
 
 const itemListJsonLd = {
   '@context': 'https://schema.org',
@@ -48,7 +49,7 @@ const itemListJsonLd = {
         <p class="ag-cats__meta"><strong>{categories.length}</strong> {cat.categoriesWord} · <strong>{total}</strong> {cat.results}</p>
       </div>
 
-      <CategoryTiles locale={locale} categories={categories} />
+      <CategoryTiles locale={locale} categories={categories} basePath={produseHref} />
     </div>
   </section>
 </BaseLayout>
