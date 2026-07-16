@@ -19,8 +19,9 @@
 import { parseProducts, type Product } from '../lib/products'
 import { OrderSheet, placeOrder } from './order'
 
-/** The subset of product fields this runtime needs (sku is intentionally absent). */
+/** The subset of product fields this runtime needs. */
 interface Row {
+  sku: string
   produs: string
   subcatSlug: string
   subcategorie: string
@@ -41,8 +42,6 @@ interface CatalogStrings {
   searchEmpty: string
   headProduct: string
   headDesc: string
-  seeMore: string
-  seeLess: string
   headUnit: string
   headOrder: string
   headSelect: string
@@ -50,6 +49,12 @@ interface CatalogStrings {
   selectedCount: string
   orderSelected: string
   clearSelection: string
+  // Product detail modal.
+  detailsTitle: string
+  labelSku: string
+  labelCategory: string
+  labelUnit: string
+  close: string
 }
 interface CatalogConfig {
   productsUrl: string
@@ -93,16 +98,17 @@ function td(label: string, className: string): HTMLTableCellElement {
 interface RowHandlers {
   onOrder: (p: Row) => void
   onToggle: (p: Row, checked: boolean) => void
+  onOpenDetail: (p: Row) => void
   isSelected: (p: Row) => boolean
 }
 
 function row(p: Row, cfg: CatalogConfig, h: RowHandlers): HTMLTableRowElement {
   const s = cfg.strings
   const tr = document.createElement('tr')
-  tr.className = 'ag-row'
+  tr.className = 'ag-row is-clickable'
   tr.dataset.category = p.subcategorie || '—'
   tr.dataset.key = productKey(p)
-  tr.dataset.search = `${p.produs} ${p.descriere} ${p.unitate} ${p.subcategorie}`.toLowerCase()
+  tr.dataset.search = `${p.produs} ${p.sku} ${p.descriere} ${p.unitate} ${p.subcategorie}`.toLowerCase()
 
   // Select checkbox (leading).
   const checkCell = td(s.headSelect, 'ag-td ag-td--check')
@@ -116,34 +122,33 @@ function row(p: Row, cfg: CatalogConfig, h: RowHandlers): HTMLTableRowElement {
   tr.appendChild(checkCell)
 
   const nameCell = td(s.headProduct, 'ag-td ag-td--name')
+  // Focusable, keyboard-operable trigger for the detail modal.
   const name = document.createElement('span')
   name.className = 'ag-row__name'
   name.textContent = p.produs
+  name.tabIndex = 0
+  name.setAttribute('role', 'button')
+  name.setAttribute('aria-label', `${s.detailsTitle}: ${p.produs}`)
+  name.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      h.onOpenDetail(p)
+    }
+  })
   nameCell.appendChild(name)
+  if (p.sku) {
+    const sku = document.createElement('span')
+    sku.className = 'ag-row__sku'
+    sku.textContent = p.sku
+    nameCell.appendChild(sku)
+  }
   tr.appendChild(nameCell)
 
   const descCell = td(s.headDesc, 'ag-td ag-td--desc')
   const descText = document.createElement('span')
   descText.className = 'ag-clamp'
   descText.textContent = p.descriere
-  descText.title = p.descriere // native tooltip on desktop hover (bonus)
   descCell.appendChild(descText)
-  // "See more / See less" toggle — shown ONLY when the description actually
-  // overflows its 3-line clamp. Explicit + works on every device (hover is not
-  // reliable on touch). Measured after layout (rAF), once the row is in the DOM.
-  const moreBtn = document.createElement('button')
-  moreBtn.type = 'button'
-  moreBtn.className = 'ag-clamp__more'
-  moreBtn.textContent = s.seeMore
-  moreBtn.hidden = true
-  moreBtn.addEventListener('click', () => {
-    const open = descText.classList.toggle('is-open')
-    moreBtn.textContent = open ? s.seeLess : s.seeMore
-  })
-  descCell.appendChild(moreBtn)
-  requestAnimationFrame(() => {
-    if (descText.scrollHeight - descText.clientHeight > 4) moreBtn.hidden = false
-  })
   tr.appendChild(descCell)
 
   const unitCell = td(s.headUnit, 'ag-td ag-td--unit')
@@ -159,19 +164,28 @@ function row(p: Row, cfg: CatalogConfig, h: RowHandlers): HTMLTableRowElement {
   orderCell.appendChild(btn)
   tr.appendChild(orderCell)
 
+  // A tap anywhere on the row opens the product detail modal — EXCEPT on the
+  // checkbox cell or the "Comandă" button, which keep their own behaviour.
+  tr.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement
+    if (target.closest('.ag-td--check') || target.closest('.ag-row__order')) return
+    h.onOpenDetail(p)
+  })
+
   return tr
 }
 
-/** Fill a single-product template with everything we know. */
+/** Fill a single-product template with everything we know (SKU included). */
 function buildMessage(cfg: CatalogConfig, p: Row): string {
   return cfg.orderTemplate
     .replace('{product}', p.produs)
+    .replace('{sku}', p.sku || '—')
     .replace('{category}', cfg.categoryLabel || p.subcategorie || '—')
     .replace('{unit}', p.unitate || '—')
     .replace('{details}', p.descriere || '—')
 }
 
-/** Build one request listing several products. */
+/** Build one request listing several products (each line carries its SKU). */
 function buildMultiMessage(cfg: CatalogConfig, products: Row[]): string {
   const category = cfg.categoryLabel || products[0]?.subcategorie || '—'
   const intro = cfg.orderMultiIntro.replace('{category}', category)
@@ -179,10 +193,114 @@ function buildMultiMessage(cfg: CatalogConfig, products: Row[]): string {
     cfg.orderMultiItem
       .replace('{n}', String(i + 1))
       .replace('{product}', p.produs)
+      .replace('{sku}', p.sku || '—')
       .replace('{unit}', p.unitate || '—')
       .replace('{details}', p.descriere || '—'),
   )
   return [intro, ...items, cfg.orderMultiOutro].join('\n')
+}
+
+const MODAL_FOCUSABLE =
+  'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])'
+
+/**
+ * Accessible product-detail modal. Controls the [data-product-modal] element:
+ * opens as a focus-trapped dialog, fills its slots from a product, closes on
+ * Escape / backdrop / close button, and restores focus to the trigger. Modeled
+ * on OrderSheet (order.ts).
+ */
+class ProductModal {
+  private root: HTMLElement
+  private nameEl: HTMLElement | null
+  private skuRow: HTMLElement | null
+  private skuEl: HTMLElement | null
+  private categoryEl: HTMLElement | null
+  private unitEl: HTMLElement | null
+  private priceRow: HTMLElement | null
+  private priceEl: HTMLElement | null
+  private descEl: HTMLElement | null
+  private orderBtn: HTMLButtonElement | null
+  private priceEmpty: string
+  private lastFocus: HTMLElement | null = null
+  private onOrder: (() => void) | null = null
+
+  constructor(root: HTMLElement, priceEmpty: string) {
+    this.root = root
+    this.nameEl = root.querySelector('[data-modal-name]')
+    this.skuRow = root.querySelector('[data-modal-sku-row]')
+    this.skuEl = root.querySelector('[data-modal-sku]')
+    this.categoryEl = root.querySelector('[data-modal-category]')
+    this.unitEl = root.querySelector('[data-modal-unit]')
+    this.priceRow = root.querySelector('[data-modal-price-row]')
+    this.priceEl = root.querySelector('[data-modal-price]')
+    this.descEl = root.querySelector('[data-modal-desc]')
+    this.orderBtn = root.querySelector('[data-modal-order]')
+    this.priceEmpty = priceEmpty
+
+    this.orderBtn?.addEventListener('click', () => {
+      const fn = this.onOrder
+      this.close()
+      fn?.()
+    })
+    root.querySelectorAll('[data-modal-close]').forEach((el) =>
+      el.addEventListener('click', () => this.close()),
+    )
+    root.addEventListener('keydown', (e) => this.onKeydown(e as KeyboardEvent))
+  }
+
+  open(p: Row, category: string, onOrder: () => void): void {
+    this.onOrder = onOrder
+    if (this.nameEl) this.nameEl.textContent = p.produs
+    if (this.skuEl) this.skuEl.textContent = p.sku
+    if (this.skuRow) this.skuRow.hidden = !p.sku
+    if (this.categoryEl) this.categoryEl.textContent = category || p.subcategorie || '—'
+    if (this.unitEl) this.unitEl.textContent = p.unitate || this.priceEmpty
+    if (this.priceEl) this.priceEl.textContent = p.pret || this.priceEmpty
+    if (this.priceRow) this.priceRow.hidden = !p.pret
+    if (this.descEl) this.descEl.textContent = p.descriere
+    this.lastFocus = document.activeElement as HTMLElement | null
+    this.root.hidden = false
+    void this.root.offsetHeight
+    this.root.classList.add('is-open')
+    document.body.style.overflow = 'hidden'
+    this.orderBtn?.focus()
+  }
+
+  close(): void {
+    if (this.root.hidden) return
+    this.root.classList.remove('is-open')
+    document.body.style.overflow = ''
+    const done = () => {
+      this.root.hidden = true
+      this.root.removeEventListener('transitionend', done)
+    }
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) done()
+    else this.root.addEventListener('transitionend', done)
+    this.lastFocus?.focus?.()
+  }
+
+  private onKeydown(e: KeyboardEvent): void {
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      this.close()
+      return
+    }
+    if (e.key !== 'Tab') return
+    const items = Array.from(this.root.querySelectorAll<HTMLElement>(MODAL_FOCUSABLE)).filter(
+      (el) => el.offsetParent !== null,
+    )
+    if (!items.length) return
+    const first = items[0]
+    const last = items[items.length - 1]
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
 }
 
 function initCatalog(): void {
@@ -205,6 +323,8 @@ function initCatalog(): void {
   const selClearBtn = selBar?.querySelector<HTMLButtonElement>('[data-sel-clear]') ?? null
   const sheetEl = root.querySelector<HTMLElement>('[data-order-sheet]')
   const sheet = sheetEl ? new OrderSheet(sheetEl) : null
+  const modalEl = root.querySelector<HTMLElement>('[data-product-modal]')
+  const modal = modalEl ? new ProductModal(modalEl, cfg.strings.priceEmpty) : null
 
   // Selection persists across background re-renders (keyed by product identity).
   const selected = new Map<string, Row>()
@@ -285,9 +405,18 @@ function initCatalog(): void {
     updateSelBar()
   }
 
+  const openDetail = (p: Row) => {
+    if (!modal) {
+      onOrder(p)
+      return
+    }
+    modal.open(p, cfg.categoryLabel, () => onOrder(p))
+  }
+
   const rowHandlers: RowHandlers = {
     onOrder,
     onToggle: toggleSelect,
+    onOpenDetail: openDetail,
     isSelected: (p) => selected.has(productKey(p)),
   }
 

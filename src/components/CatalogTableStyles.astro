@@ -224,8 +224,28 @@
     width: 64px;
   }
   .ag-row__name {
+    display: block;
     font-weight: 600;
     color: var(--ei-ink);
+  }
+  .ag-row__name:focus-visible {
+    outline: 2px solid var(--ei-accent);
+    outline-offset: 2px;
+    border-radius: var(--ei-radius-xs);
+  }
+  /* Compact SKU subtitle under the product name. */
+  .ag-row__sku {
+    display: block;
+    margin-top: 0.15rem;
+    font-family: var(--ei-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--ei-faint);
+  }
+  /* The whole row is a tap target for the product detail modal. */
+  .ag-row.is-clickable {
+    cursor: pointer;
   }
   .ag-td--cat {
     color: var(--ei-muted);
@@ -234,38 +254,14 @@
   .ag-td--desc {
     color: var(--ei-muted);
   }
-  /* Long product descriptions clamp to 3 lines; a "See more" button (JS toggles
-     .is-open) reveals the rest. The full text is always in the DOM (SEO). */
+  /* Long product descriptions clamp to 2 lines in the table; the full text is
+     always in the DOM (SEO) and shown unclamped in the product detail modal. */
   .ag-clamp {
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-wrap: pretty;
-  }
-  .ag-clamp.is-open {
-    -webkit-line-clamp: unset;
-    display: block;
-  }
-  .ag-clamp__more {
-    display: inline-block;
-    margin-top: 0.25rem;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--ei-accent-text);
-    font: inherit;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-  .ag-clamp__more:hover {
-    color: var(--ei-accent-strong);
-  }
-  .ag-clamp__more[hidden] {
-    display: none;
   }
   .ag-td--unit {
     color: var(--ei-muted);
@@ -508,6 +504,150 @@
     }
     .ag-sheet__actions {
       flex-direction: row;
+    }
+  }
+
+  /* ---- Product detail modal ------------------------------------------ */
+  .ag-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .ag-modal[hidden] {
+    display: none;
+  }
+  .ag-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 20, 22, 0.55);
+    opacity: 0;
+    transition: opacity 0.25s var(--ei-ease);
+  }
+  .ag-modal.is-open .ag-modal__backdrop {
+    opacity: 1;
+  }
+  .ag-modal__panel {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 0.75rem 0.75rem;
+    padding: 1.7rem 1.5rem 1.8rem;
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline-strong);
+    border-radius: var(--ei-radius-lg);
+    box-shadow: var(--ei-shadow-lg);
+    transform: translateY(16px);
+    opacity: 0;
+    transition: transform 0.28s var(--ei-ease-out), opacity 0.2s var(--ei-ease);
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+  .ag-modal.is-open .ag-modal__panel {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .ag-modal__eyebrow {
+    margin: 0;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ei-faint);
+  }
+  .ag-modal__name {
+    margin: 0.35rem 0 0;
+    font-size: 1.3rem;
+    padding-right: 2rem;
+    color: var(--ei-ink);
+  }
+  .ag-modal__meta {
+    display: grid;
+    gap: 0.5rem 1rem;
+    margin: 1.1rem 0 0;
+  }
+  .ag-modal__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--ei-hairline);
+  }
+  .ag-modal__row[hidden] {
+    display: none;
+  }
+  .ag-modal__row dt {
+    flex: 0 0 auto;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ei-faint);
+  }
+  .ag-modal__row dd {
+    margin: 0;
+    text-align: right;
+    color: var(--ei-ink-soft);
+    font-weight: 600;
+  }
+  .ag-modal__row [data-modal-sku] {
+    font-family: var(--ei-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: 0.85rem;
+  }
+  .ag-modal__desc {
+    margin: 1.1rem 0 0;
+    color: var(--ei-muted);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+  .ag-modal__desc:empty {
+    display: none;
+  }
+  .ag-modal__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 1.4rem;
+  }
+  .ag-modal__actions .ag-btn {
+    width: 100%;
+  }
+  .ag-modal__close {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    display: inline-flex;
+    padding: 0.4rem;
+    border: none;
+    background: transparent;
+    color: var(--ei-muted);
+    cursor: pointer;
+    border-radius: var(--ei-radius-xs);
+  }
+  .ag-modal__close:hover {
+    color: var(--ei-ink);
+  }
+  @media (min-width: 640px) {
+    .ag-modal {
+      align-items: center;
+    }
+    .ag-modal__panel {
+      margin-bottom: 0;
+      transform: translateY(0) scale(0.96);
+    }
+    .ag-modal.is-open .ag-modal__panel {
+      transform: translateY(0) scale(1);
+    }
+    .ag-modal__actions {
+      flex-direction: row-reverse;
+      justify-content: flex-start;
+    }
+    .ag-modal__actions .ag-btn {
+      width: auto;
     }
   }
 

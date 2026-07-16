@@ -10,7 +10,8 @@
  * does NOT filter a global sheet by category name. A live refresh only happens if
  * PUBLIC_PRODUCTS_URL is new-schema; otherwise the build-time rows stay in place.
  *
- * SKU stays internal: it is NEVER rendered nor embedded in the page.
+ * SKU is shown as a compact subtitle under the product name and is embedded in the
+ * order message (the team searches by SKU), so it is surfaced to the client.
  */
 import type { Locale } from '../i18n/ui'
 import { t } from '../i18n/utils'
@@ -32,10 +33,11 @@ const c = t(locale)
 const cat = c.catalog
 const rows = products
 
-// No-JS wa.me fallback — includes all the product info we have.
-const orderMessage = (p: { produs: string; unitate: string; descriere: string }) =>
+// No-JS wa.me fallback — includes all the product info we have (SKU included).
+const orderMessage = (p: { produs: string; sku: string; unitate: string; descriere: string }) =>
   c.order.message
     .replace('{product}', p.produs)
+    .replace('{sku}', p.sku || '—')
     .replace('{category}', categoryLabel)
     .replace('{unit}', p.unitate || '—')
     .replace('{details}', p.descriere || '—')
@@ -64,8 +66,6 @@ const catalogConfig = {
     searchEmpty: cat.searchEmpty,
     headProduct: cat.headProduct,
     headDesc: cat.headDesc,
-    seeMore: cat.seeMore,
-    seeLess: cat.seeLess,
     headUnit: cat.headUnit,
     headOrder: cat.headOrder,
     headSelect: cat.headSelect,
@@ -73,11 +73,18 @@ const catalogConfig = {
     selectedCount: cat.selectedCount,
     orderSelected: cat.orderSelected,
     clearSelection: cat.clearSelection,
+    // Product detail modal.
+    detailsTitle: cat.detailsTitle,
+    labelSku: cat.labelSku,
+    labelCategory: cat.labelCategory,
+    labelUnit: cat.labelUnit,
+    close: c.order.close,
   },
 }
 
-// Products embedded for the client — WITHOUT sku (internal only).
+// Products embedded for the client — SKU included (shown + sent in the order msg).
 const clientRows = rows.map((p) => ({
+  sku: p.sku,
   produs: p.produs,
   l1Slug: p.l1Slug,
   subcatSlug: p.subcatSlug,
@@ -124,7 +131,10 @@ const clientRows = rows.map((p) => ({
                   <td class="ag-td ag-td--check" data-label={cat.headSelect}>
                     <input type="checkbox" class="ag-check" aria-label={`${cat.headSelect}: ${p.produs}`} />
                   </td>
-                  <td class="ag-td ag-td--name" data-label={cat.headProduct}><span class="ag-row__name">{p.produs}</span></td>
+                  <td class="ag-td ag-td--name" data-label={cat.headProduct}>
+                    <span class="ag-row__name">{p.produs}</span>
+                    {p.sku && <span class="ag-row__sku">{p.sku}</span>}
+                  </td>
                   <td class="ag-td ag-td--desc" data-label={cat.headDesc}><span class="ag-clamp">{p.descriere}</span></td>
                   <td class="ag-td ag-td--unit" data-label={cat.headUnit}>{p.unitate || cat.priceEmpty}</td>
                   <td class="ag-td ag-td--order">
@@ -169,6 +179,41 @@ const clientRows = rows.map((p) => ({
           <div class="ag-sheet__actions">
             <button type="button" class="ag-btn ag-btn--whatsapp" data-order-whatsapp>{c.order.whatsapp}</button>
             <button type="button" class="ag-btn ag-btn--secondary" data-order-widget>{c.order.widget}</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product detail modal (accessible dialog; opened on row tap by catalog.ts) -->
+      <div class="ag-modal" data-product-modal role="dialog" aria-modal="true" aria-labelledby="ag-modal-title" hidden>
+        <div class="ag-modal__backdrop" data-modal-close></div>
+        <div class="ag-modal__panel">
+          <button type="button" class="ag-modal__close" data-modal-close aria-label={c.order.close}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          </button>
+          <p class="ag-modal__eyebrow">{cat.detailsTitle}</p>
+          <h2 id="ag-modal-title" class="ag-modal__name" data-modal-name></h2>
+          <dl class="ag-modal__meta">
+            <div class="ag-modal__row" data-modal-sku-row>
+              <dt>{cat.labelSku}</dt>
+              <dd data-modal-sku></dd>
+            </div>
+            <div class="ag-modal__row">
+              <dt>{cat.labelCategory}</dt>
+              <dd data-modal-category></dd>
+            </div>
+            <div class="ag-modal__row">
+              <dt>{cat.labelUnit}</dt>
+              <dd data-modal-unit></dd>
+            </div>
+            <div class="ag-modal__row" data-modal-price-row>
+              <dt>{cat.priceLabel}</dt>
+              <dd data-modal-price></dd>
+            </div>
+          </dl>
+          <p class="ag-modal__desc" data-modal-desc></p>
+          <div class="ag-modal__actions">
+            <button type="button" class="ag-btn ag-btn--primary" data-modal-order>{cat.orderCta}</button>
+            <button type="button" class="ag-btn ag-btn--secondary" data-modal-close>{c.order.close}</button>
           </div>
         </div>
       </div>

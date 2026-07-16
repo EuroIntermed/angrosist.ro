@@ -329,6 +329,11 @@ const ro = {
     headOrder: 'Comandă',
     priceEmpty: '—',
     results: 'produse',
+    // Product detail modal (opened by tapping a row).
+    detailsTitle: 'Detalii produs',
+    labelSku: 'Cod SKU',
+    labelCategory: 'Categorie',
+    labelUnit: 'Unitate',
   },
   order: {
     sheetTitle: 'Cum vrei să comanzi?',
@@ -336,14 +341,14 @@ const ro = {
     whatsapp: 'Continuă pe WhatsApp',
     widget: 'Continuă în chat',
     close: 'Închide',
-    // {product} / {category} / {unit} / {details} placeholders filled at runtime.
+    // {product} / {sku} / {category} / {unit} / {details} placeholders filled at runtime.
     message:
-      'Bună ziua! Vreau să comand prin Angrosist.\nProdus: {product}\nCategorie: {category}\nAmbalaj: {unit}\nDetalii: {details}\nCantitate: ___\nLivrare: ___\nSursă: catalog online',
-    // Multiple products: an intro line, one numbered {product}/{unit}/{details}
+      'Bună ziua! Vreau să comand prin Angrosist.\nProdus: {product}\nCod SKU: {sku}\nCategorie: {category}\nAmbalaj: {unit}\nDetalii: {details}\nCantitate: ___\nLivrare: ___\nSursă: catalog online',
+    // Multiple products: an intro line, one numbered {product}/{sku}/{unit}/{details}
     // line per item, then an outro.
     messageMultiIntro:
       'Bună ziua! Vreau să comand prin Angrosist următoarele produse din categoria {category}:',
-    messageMultiItem: '{n}. {product} — Ambalaj: {unit} — Detalii: {details}',
+    messageMultiItem: '{n}. {product} — Cod SKU: {sku} — Ambalaj: {unit} — Detalii: {details}',
     messageMultiOutro: 'Cantitate per produs: ___\nLivrare: ___\nSursă: catalog online',
   },
   how: {
@@ -743,6 +748,11 @@ const en: typeof ro = {
     headOrder: 'Order',
     priceEmpty: '—',
     results: 'products',
+    // Product detail modal (opened by tapping a row).
+    detailsTitle: 'Product details',
+    labelSku: 'SKU',
+    labelCategory: 'Category',
+    labelUnit: 'Unit',
   },
   order: {
     sheetTitle: 'How would you like to order?',
@@ -750,12 +760,12 @@ const en: typeof ro = {
     whatsapp: 'Continue on WhatsApp',
     widget: 'Continue in chat',
     close: 'Close',
-    // {product} / {category} / {unit} / {details} placeholders filled at runtime.
+    // {product} / {sku} / {category} / {unit} / {details} placeholders filled at runtime.
     message:
-      'Hello! I want to order via Angrosist.\nProduct: {product}\nCategory: {category}\nPackaging: {unit}\nDetails: {details}\nQuantity: ___\nDelivery: ___\nSource: online catalog',
+      'Hello! I want to order via Angrosist.\nProduct: {product}\nSKU: {sku}\nCategory: {category}\nPackaging: {unit}\nDetails: {details}\nQuantity: ___\nDelivery: ___\nSource: online catalog',
     messageMultiIntro:
       'Hello! I want to order the following products via Angrosist, from the {category} category:',
-    messageMultiItem: '{n}. {product} — Packaging: {unit} — Details: {details}',
+    messageMultiItem: '{n}. {product} — SKU: {sku} — Packaging: {unit} — Details: {details}',
     messageMultiOutro: 'Quantity per product: ___\nDelivery: ___\nSource: online catalog',
   },
   how: {
