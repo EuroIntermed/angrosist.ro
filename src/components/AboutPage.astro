@@ -1,0 +1,293 @@
+---
+/**
+ * AboutPage — the "Despre noi / About us" page. Tells the Euro Intermed Solutions
+ * story (2015 Brașov bulk store → first warehouse → two digital platforms → today),
+ * lists the extended B2B services, and closes with a short proof note plus a
+ * WhatsApp/contact CTA. All copy comes from the i18n dictionary (c.about); the
+ * component is shared verbatim across the three ecosystem sites.
+ */
+import type { Locale } from '../i18n/ui'
+import { t, localizePath } from '../i18n/utils'
+import { waLink } from '../lib/config'
+import BaseLayout from './BaseLayout.astro'
+import Section from './Section.astro'
+import Button from './Button.astro'
+
+const { locale } = Astro.props as { locale: Locale }
+const c = t(locale)
+const a = c.about
+const contactHref = localizePath('/contact', locale)
+---
+
+<BaseLayout locale={locale} title={a.metaTitle} description={a.metaDescription} breadcrumb={a.eyebrow}>
+  <section class="ei-about-hero">
+    <div class="ei-container ei-about-hero__inner" data-reveal>
+      <p class="ei-eyebrow">{a.eyebrow}</p>
+      <h1>{a.title}</h1>
+      <p class="ei-about-hero__sub">{a.subtitle}</p>
+      <p class="ei-lead">{a.lead}</p>
+      <dl class="ei-about-stats">
+        {
+          a.stats.map((s) => (
+            <div class="ei-about-stat">
+              <dt>{s.value}</dt>
+              <dd>{s.label}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <Section tone="raised" labelledby="about-journey-title">
+    <div class="ei-about-head" data-reveal>
+      <p class="ei-eyebrow">{a.journeyEyebrow}</p>
+      <h2 id="about-journey-title">{a.journeyTitle}</h2>
+      <p class="ei-lead">{a.journeyLead}</p>
+    </div>
+    <ol class="ei-about-timeline">
+      {
+        a.journey.map((step, i) => (
+          <li class="ei-about-tl" data-reveal style={`--i:${i}`}>
+            <span class="ei-about-tl__marker">{step.marker}</span>
+            <div class="ei-about-tl__body">
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </Section>
+
+  <Section labelledby="about-services-title">
+    <div class="ei-about-head" data-reveal>
+      <p class="ei-eyebrow">{a.servicesEyebrow}</p>
+      <h2 id="about-services-title">{a.servicesTitle}</h2>
+      <p class="ei-lead">{a.servicesLead}</p>
+    </div>
+    <ul class="ei-about-services">
+      {
+        a.services.map((s, i) => (
+          <li class="ei-about-service" data-reveal style={`--i:${i}`}>
+            <h3>{s.title}</h3>
+            <p>{s.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <Section tone="contrast" labelledby="about-cta-title">
+    <div class="ei-about-close" data-reveal>
+      <p class="ei-about-close__lead">{a.closing}</p>
+      <div class="ei-about-proof">
+        <p class="ei-eyebrow">{a.proofEyebrow}</p>
+        <p>{a.proof}</p>
+      </div>
+      <div class="ei-about-cta">
+        <h2 id="about-cta-title">{a.cta.title}</h2>
+        <p class="ei-lead">{a.cta.copy}</p>
+        <div class="ei-about-cta__actions">
+          <Button href={waLink(a.cta.whatsappText)} variant="whatsapp" target="_blank" rel="noopener" data-ga-vertical="whatsapp">
+            {a.cta.primary}
+          </Button>
+          <Button href={contactHref} variant="secondary">{a.cta.secondary}</Button>
+        </div>
+      </div>
+    </div>
+  </Section>
+</BaseLayout>
+
+<style>
+  .ei-about-hero {
+    padding-block: clamp(2.5rem, 2rem + 4vw, 5rem) clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  }
+  .ei-about-hero__inner {
+    max-width: 62ch;
+  }
+  .ei-about-hero h1 {
+    margin-top: 0.7rem;
+  }
+  .ei-about-hero__sub {
+    margin-top: 0.6rem;
+    font-size: clamp(1.05rem, 1rem + 0.6vw, 1.3rem);
+    font-weight: 600;
+    color: var(--ei-accent-strong);
+  }
+  .ei-about-hero .ei-lead {
+    margin-top: 1.1rem;
+  }
+
+  .ei-about-stats {
+    margin: 2.2rem 0 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+  .ei-about-stat {
+    padding: 1.1rem 1.2rem;
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-md);
+  }
+  .ei-about-stat dt {
+    font-size: clamp(1.3rem, 1.1rem + 1vw, 1.8rem);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--ei-accent-strong);
+    font-variant-numeric: tabular-nums;
+  }
+  .ei-about-stat dd {
+    margin: 0.35rem 0 0;
+    font-size: 0.85rem;
+    color: var(--ei-muted);
+  }
+
+  /* Section heads (journey + services) */
+  .ei-about-head {
+    max-width: 60ch;
+  }
+  .ei-about-head h2 {
+    margin-top: 0.7rem;
+  }
+  .ei-about-head .ei-lead {
+    margin-top: 1rem;
+  }
+
+  /* Timeline */
+  .ei-about-timeline {
+    list-style: none;
+    margin: 2.5rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .ei-about-tl {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .ei-about-tl__marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5em 0.9em;
+    background: var(--ei-accent-soft);
+    color: var(--ei-accent-text);
+    border-radius: var(--ei-radius-pill);
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.01em;
+    text-align: center;
+    position: sticky;
+    top: 92px;
+  }
+  .ei-about-tl__body {
+    padding: 1.4rem 1.6rem;
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-md);
+  }
+  .ei-about-tl__body h3 {
+    font-size: 1.14rem;
+    margin-bottom: 0.4rem;
+  }
+  .ei-about-tl__body p {
+    color: var(--ei-muted);
+    font-size: 0.95rem;
+  }
+
+  /* Services */
+  .ei-about-services {
+    list-style: none;
+    margin: 2.5rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+  .ei-about-service {
+    padding: 1.6rem 1.6rem;
+    background: var(--ei-surface);
+    border: 1px solid var(--ei-hairline);
+    border-radius: var(--ei-radius-md);
+    border-top: 3px solid var(--ei-accent);
+  }
+  .ei-about-service h3 {
+    font-size: 1.14rem;
+    margin-bottom: 0.45rem;
+  }
+  .ei-about-service p {
+    color: var(--ei-muted);
+    font-size: 0.95rem;
+  }
+
+  /* Closing / proof / CTA band */
+  .ei-about-close {
+    max-width: 68ch;
+    margin-inline: auto;
+    text-align: center;
+  }
+  .ei-about-close__lead {
+    font-size: clamp(1.15rem, 1rem + 0.9vw, 1.5rem);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .ei-about-proof {
+    margin-top: 2rem;
+    padding: 1.5rem 1.7rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--ei-radius-lg);
+    text-align: left;
+  }
+  .ei-about-proof p:last-child {
+    margin: 0.5rem 0 0;
+    color: var(--ei-on-contrast-muted);
+    font-size: 0.95rem;
+  }
+  .ei-about-cta {
+    margin-top: 2.5rem;
+  }
+  .ei-about-cta .ei-lead {
+    margin: 0.8rem auto 0;
+  }
+  .ei-about-cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1.8rem;
+  }
+  .ei-about-cta__actions :global(.ei-btn--secondary) {
+    --_fg: var(--ei-on-contrast);
+    --_bd: rgba(255, 255, 255, 0.35);
+  }
+  .ei-about-cta__actions :global(.ei-btn--secondary:hover) {
+    --_bg: rgba(255, 255, 255, 0.1);
+    --_bd: var(--ei-on-contrast);
+    --_fg: var(--ei-on-contrast);
+  }
+
+  @media (max-width: 780px) {
+    .ei-about-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .ei-about-services {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .ei-about-tl {
+      grid-template-columns: 1fr;
+      gap: 0.7rem;
+    }
+    .ei-about-tl__marker {
+      justify-self: start;
+      position: static;
+    }
+  }
+</style>

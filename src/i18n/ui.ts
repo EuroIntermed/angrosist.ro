@@ -8,6 +8,78 @@
 export type Locale = 'ro' | 'en'
 
 const ro = {
+  about: {
+    metaTitle: 'Despre noi | Euro Intermed Solutions — Angrosist.ro',
+    metaDescription:
+      'De la primul magazin vrac din Brașov (2015) la partener strategic B2B. Povestea și serviciile Euro Intermed Solutions: sourcing, asigurare de stocuri, logistică și forecast.',
+    navLabel: 'Despre noi',
+    eyebrow: 'Despre noi',
+    title: 'Povestea Euro Intermed Solutions',
+    subtitle: 'De la primul magazin vrac din Brașov, la partener strategic B2B',
+    lead: 'Totul a început în 2015, la Brașov, cu un singur magazin de produse vrac — primul de acest fel din oraș. O idee simplă: produse bune, la preț corect, fără intermediari inutili.',
+    stats: [
+      { value: '2015', label: 'anul primului magazin' },
+      { value: '10 ani', label: 'de operare directă' },
+      { value: '2 platforme', label: 'digitale, B2B și B2C' },
+      { value: 'Brașov', label: 'de unde a pornit totul' },
+    ],
+    journeyEyebrow: 'Parcursul nostru',
+    journeyTitle: 'Zece ani, pas cu pas',
+    journeyLead: 'Nu suntem un start-up care promite. Suntem extensia firească a unei companii care a construit, an de an, infrastructura reală din spatele tranzacțiilor B2B — depozite, relații cu furnizori, logistică și platforme digitale.',
+    journey: [
+      {
+        marker: '2015',
+        title: 'Primul magazin vrac',
+        body: 'La Brașov, primul magazin de produse vrac din oraș, deschis de Laurian Distrib — și primul test al unei filozofii care avea să rămână neschimbată: apropierea de client și înțelegerea reală a nevoilor lui.',
+      },
+      {
+        marker: 'Extindere',
+        title: 'Primul depozit',
+        body: 'Companiile, HoReCa, procesatorii și retailerii mici voiau să cumpere en-gros, în volume mai mari, direct de la sursă. Așa a apărut primul depozit — și trecerea de la vânzarea către consumatorul final la vânzarea B2B.',
+      },
+      {
+        marker: 'Digitalizare',
+        title: 'Două platforme',
+        body: 'Am construit Angrosist.ro, dedicată exclusiv segmentului B2B, și Evrac.ro, orientată către consumatorul final — fiecare cu propriul public, aceeași grijă pentru client.',
+      },
+      {
+        marker: 'Astăzi',
+        title: 'Euro Intermed Solutions',
+        body: 'Zece ani de operare directă ne-au adus ceva ce nu se poate cumpăra: cunoașterea reală a lanțului de aprovizionare, a furnizorilor și a problemelor concrete ale unui cumpărător B2B. Astăzi, această experiență a devenit un partener care optimizează întregul proces de aprovizionare.',
+      },
+    ],
+    servicesEyebrow: 'Servicii',
+    servicesTitle: 'Mai mult decât livrarea de marfă',
+    servicesLead: 'Clienții noștri aveau nevoie de mai mult decât simpla livrare. De aceea oferim servicii extinse, construite pe baza problemelor reale întâlnite de-a lungul anilor.',
+    services: [
+      {
+        title: 'Consultanță de sourcing',
+        body: 'Identificăm produsele potrivite pe baza specificațiilor tehnice ale clientului, nu doar pe baza cataloagelor disponibile.',
+      },
+      {
+        title: 'Asigurare de stocuri și stocuri tampon',
+        body: 'Pentru ca producția sau vânzările clienților noștri să nu se oprească niciodată din lipsă de materie primă.',
+      },
+      {
+        title: 'Organizare logistică',
+        body: 'De la coordonarea transporturilor la optimizarea fluxurilor de aprovizionare.',
+      },
+      {
+        title: 'Forecast și planificare',
+        body: 'Anticipăm nevoile de aprovizionare înainte ca ele să devină urgențe.',
+      },
+    ],
+    closing: 'De la un magazin vrac în Brașov, la o rețea de platforme și servicii dedicate business-ului, principiul rămâne același: înțelegem lanțul de aprovizionare pentru că l-am construit noi înșine, pas cu pas, din 2015 până azi.',
+    proofEyebrow: 'Pe scurt',
+    proof: '10 ani de experiență reală în B2B, nu doar promisiuni. Euro Intermed Solutions continuă povestea începută în 2015 de Laurian Distrib — de la primul magazin vrac din Brașov, la un depozit propriu, apoi la două platforme digitale (Angrosist.ro pentru B2B, Evrac.ro pentru B2C). Nu suntem noi în piață — suntem rezultatul a zece ani de construit-o.',
+    cta: {
+      title: 'Hai să discutăm despre aprovizionarea ta',
+      copy: 'Spune-ne ce cauți, iar noi punem la treabă zece ani de experiență B2B.',
+      primary: 'Scrie-ne pe WhatsApp',
+      secondary: 'Vezi opțiunile de contact',
+      whatsappText: 'Buna ziua. Am citit despre Euro Intermed Solutions si vreau sa discut despre aprovizionare. Detalii: ___',
+    },
+  },
   meta: {
     homeTitle:
       'Angrosist.ro | Sourcing B2B pentru materii prime și produse vrac',
@@ -455,6 +527,78 @@ const ro = {
 }
 
 const en: typeof ro = {
+  about: {
+    metaTitle: 'About us | Euro Intermed Solutions — Angrosist.ro',
+    metaDescription:
+      'From the first bulk-goods store in Brașov (2015) to a strategic B2B partner. The Euro Intermed Solutions story and services: sourcing, stock assurance, logistics and forecasting.',
+    navLabel: 'About us',
+    eyebrow: 'About us',
+    title: 'The Euro Intermed Solutions story',
+    subtitle: 'From the first bulk-goods store in Brașov, to a strategic B2B partner',
+    lead: 'It all started in 2015, in Brașov, with a single bulk-goods store — the first of its kind in the city. A simple idea: good products, at fair prices, without unnecessary intermediaries.',
+    stats: [
+      { value: '2015', label: 'the first store' },
+      { value: '10 years', label: 'of direct operation' },
+      { value: '2 platforms', label: 'digital, B2B and B2C' },
+      { value: 'Brașov', label: 'where it all began' },
+    ],
+    journeyEyebrow: 'Our journey',
+    journeyTitle: 'Ten years, step by step',
+    journeyLead: 'We are not a start-up making promises. We are the natural extension of a company that spent years building the real infrastructure behind B2B transactions — warehouses, supplier relationships, logistics and digital platforms.',
+    journey: [
+      {
+        marker: '2015',
+        title: 'The first bulk-goods store',
+        body: 'In Brașov, the first bulk-goods store in the city, opened by Laurian Distrib — and the first test of a philosophy that would stay unchanged: staying close to the customer and genuinely understanding their needs.',
+      },
+      {
+        marker: 'Growth',
+        title: 'The first warehouse',
+        body: 'Companies, HoReCa businesses, processors and small retailers wanted to buy wholesale, in larger volumes, directly from the source. That is how our first warehouse came to be — and the shift from selling to end consumers to selling B2B.',
+      },
+      {
+        marker: 'Digitalization',
+        title: 'Two platforms',
+        body: 'We built Angrosist.ro, dedicated exclusively to the B2B segment, and Evrac.ro, focused on the end consumer — each with its own audience, the same care for the customer.',
+      },
+      {
+        marker: 'Today',
+        title: 'Euro Intermed Solutions',
+        body: 'Ten years of direct operation gave us something that cannot be bought: real knowledge of the supply chain, of suppliers and of the concrete problems a B2B buyer faces. Today, that experience has become a partner that optimizes the entire supply process.',
+      },
+    ],
+    servicesEyebrow: 'Services',
+    servicesTitle: 'More than simple product delivery',
+    servicesLead: 'Our clients needed more than delivery. That is why we offer extended services, built on real problems encountered over the years.',
+    services: [
+      {
+        title: 'Sourcing consultancy',
+        body: 'We identify the right products based on the client’s technical specifications, not just available catalogs.',
+      },
+      {
+        title: 'Stock and buffer stock assurance',
+        body: 'So our clients’ production or sales never stop due to a lack of raw materials.',
+      },
+      {
+        title: 'Logistics organization',
+        body: 'From transport coordination to supply-flow optimization.',
+      },
+      {
+        title: 'Forecasting and planning',
+        body: 'We anticipate supply needs before they become urgent.',
+      },
+    ],
+    closing: 'From a bulk-goods store in Brașov, to a network of platforms and services dedicated to business, the principle stays the same: we understand the supply chain because we built it ourselves, step by step, from 2015 to today.',
+    proofEyebrow: 'In short',
+    proof: '10 years of real B2B experience, not just promises. Euro Intermed Solutions continues the story started in 2015 by Laurian Distrib — from the first bulk-goods store in Brașov, to our own warehouse, then to two digital platforms (Angrosist.ro for B2B, Evrac.ro for B2C). We are not new to this market — we are the result of ten years of building it.',
+    cta: {
+      title: 'Let’s talk about your supply',
+      copy: 'Tell us what you need and we put ten years of B2B experience to work.',
+      primary: 'Message us on WhatsApp',
+      secondary: 'See contact options',
+      whatsappText: 'Hello. I read about Euro Intermed Solutions and want to discuss supply. Details: ___',
+    },
+  },
   meta: {
     homeTitle: 'Angrosist.ro | B2B sourcing for raw materials and bulk products',
     homeDescription:
