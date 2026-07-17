@@ -114,6 +114,24 @@
       ]
     },
     {
+      "source": "/cookies",
+      "has": [
+        {
+          "type": "host",
+          "value": ".*\\.(com|it|pl)$"
+        }
+      ],
+      "destination": "/en/cookies",
+      "permanent": false,
+      "missing": [
+        {
+          "type": "cookie",
+          "key": "pref-lang",
+          "value": "ro"
+        }
+      ]
+    },
+    {
       "source": "/produse",
       "has": [
         {
