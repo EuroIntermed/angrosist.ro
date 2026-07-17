@@ -18,11 +18,8 @@ const lp = (p: string) => localizePath(p, locale)
   <div class="ei-container ei-footer__grid">
     <div class="ei-footer__brand">
       <a class="ei-brand" href={localizePath('/', locale)} aria-label={c.brand.name}>
-        <span class="ei-brand__mark" aria-hidden="true">{c.brand.mark}</span>
-        <span class="ei-brand__text">
-          <span>{c.brand.name}</span>
-          <small>{c.brand.tagline}</small>
-        </span>
+        <img class="ei-brand__logo ei-brand__logo--light" src="/brand/logo.png" alt={c.brand.name} width={235} height={160} />
+        <img class="ei-brand__logo ei-brand__logo--dark" src="/brand/logo-white.png" alt="" aria-hidden="true" width={235} height={160} />
       </a>
       <p class="ei-footer__tag">{f.tagline}</p>
     </div>
@@ -136,30 +133,33 @@ const lp = (p: string) => localizePath(p, locale)
     align-items: center;
     gap: 0.65rem;
   }
-  .ei-brand__mark {
-    display: grid;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 11px;
-    background: linear-gradient(140deg, var(--ei-accent), var(--ei-accent-strong));
-    color: #fff;
-    font-weight: 700;
-    font-size: 0.9rem;
+  .ei-brand__logo {
+    height: 40px;
+    width: auto;
+    display: block;
   }
-  .ei-brand__text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.05;
+  .ei-brand__logo--dark {
+    display: none;
   }
-  .ei-brand__text span {
-    font-weight: 600;
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) .ei-brand__logo--light {
+      display: none;
+    }
+    :root:not([data-theme='light']) .ei-brand__logo--dark {
+      display: block;
+    }
   }
-  .ei-brand__text small {
-    font-size: 0.68rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--ei-gold-text);
+  :root[data-theme='dark'] .ei-brand__logo--light {
+    display: none;
+  }
+  :root[data-theme='dark'] .ei-brand__logo--dark {
+    display: block;
+  }
+  :root[data-theme='light'] .ei-brand__logo--light {
+    display: block;
+  }
+  :root[data-theme='light'] .ei-brand__logo--dark {
+    display: none;
   }
 
   @media (max-width: 760px) {
