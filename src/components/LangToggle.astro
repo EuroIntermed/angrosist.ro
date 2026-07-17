@@ -12,10 +12,25 @@ const enHref = switchLocalePath(pathname, 'en')
 ---
 
 <div class="ei-lang" role="group" aria-label="Language">
-  <a href={roHref} class={`ei-lang__opt ${locale === 'ro' ? 'is-active' : ''}`} hreflang="ro" aria-current={locale === 'ro' ? 'true' : undefined}>RO</a>
+  <a href={roHref} data-set-lang="ro" class={`ei-lang__opt ${locale === 'ro' ? 'is-active' : ''}`} hreflang="ro" aria-current={locale === 'ro' ? 'true' : undefined}>RO</a>
   <span class="ei-lang__sep" aria-hidden="true">/</span>
-  <a href={enHref} class={`ei-lang__opt ${locale === 'en' ? 'is-active' : ''}`} hreflang="en" aria-current={locale === 'en' ? 'true' : undefined}>EN</a>
+  <a href={enHref} data-set-lang="en" class={`ei-lang__opt ${locale === 'en' ? 'is-active' : ''}`} hreflang="en" aria-current={locale === 'en' ? 'true' : undefined}>EN</a>
 </div>
+
+<script>
+  // Persist an explicit language choice BEFORE navigating, so the host-based
+  // default redirect (.com/.it/.pl -> /en, gated on `missing pref-lang=ro` in
+  // vercel.json) is skipped once the visitor picks a language. Delegated so it
+  // covers every LangToggle instance (desktop nav + mobile menu). document.cookie
+  // is synchronous, so it is present on the request the click triggers.
+  document.addEventListener('click', function (e) {
+    var t = e.target
+    if (!(t instanceof Element)) return
+    var opt = t.closest('[data-set-lang]')
+    if (!opt) return
+    document.cookie = 'pref-lang=' + opt.getAttribute('data-set-lang') + ';path=/;max-age=31536000;samesite=lax'
+  })
+</script>
 
 <style>
   .ei-lang {

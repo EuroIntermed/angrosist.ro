@@ -369,9 +369,13 @@
     .ag-td--price {
       white-space: normal;
     }
+    /* Mobile: clamp the description to 3 lines in the card; full text stays in
+       the DOM (SEO) and is shown unclamped in the product detail modal. */
     .ag-clamp {
-      display: block;
-      -webkit-line-clamp: unset;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
     /* Image tile is the card's leading element */
     .ag-td--img {

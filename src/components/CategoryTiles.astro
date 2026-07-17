@@ -63,6 +63,11 @@ const base = basePath.replace(/\/+$/, '')
 
 <style>
   .ag-cats__grid {
+    /* Reset the browser's default <ul> indent/margin so the grid aligns flush
+       with the heading and container edge (the "weird left padding"). */
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
     gap: 1.4rem;

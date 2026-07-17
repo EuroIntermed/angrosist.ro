@@ -14,7 +14,14 @@
         }
       ],
       "destination": "/en",
-      "permanent": false
+      "permanent": false,
+      "missing": [
+        {
+          "type": "cookie",
+          "key": "pref-lang",
+          "value": "ro"
+        }
+      ]
     },
     {
       "source": "/contact",
@@ -25,7 +32,14 @@
         }
       ],
       "destination": "/en/contact",
-      "permanent": false
+      "permanent": false,
+      "missing": [
+        {
+          "type": "cookie",
+          "key": "pref-lang",
+          "value": "ro"
+        }
+      ]
     },
     {
       "source": "/cum-functioneaza",
@@ -36,7 +50,14 @@
         }
       ],
       "destination": "/en/cum-functioneaza",
-      "permanent": false
+      "permanent": false,
+      "missing": [
+        {
+          "type": "cookie",
+          "key": "pref-lang",
+          "value": "ro"
+        }
+      ]
     },
     {
       "source": "/termeni",
@@ -47,7 +68,14 @@
         }
       ],
       "destination": "/en/termeni",
-      "permanent": false
+      "permanent": false,
+      "missing": [
+        {
+          "type": "cookie",
+          "key": "pref-lang",
+          "value": "ro"
+        }
+      ]
     },
     {
       "source": "/confidentialitate",
@@ -58,7 +86,14 @@
         }
       ],
       "destination": "/en/confidentialitate",
-      "permanent": false
+      "permanent": false,
+      "missing": [
+        {
+          "type": "cookie",
+          "key": "pref-lang",
+          "value": "ro"
+        }
+      ]
     },
     {
       "source": "/gdpr",
@@ -69,7 +104,14 @@
         }
       ],
       "destination": "/en/gdpr",
-      "permanent": false
+      "permanent": false,
+      "missing": [
+        {
+          "type": "cookie",
+          "key": "pref-lang",
+          "value": "ro"
+        }
+      ]
     },
     {
       "source": "/produse",
@@ -80,7 +122,14 @@
         }
       ],
       "destination": "/en/produse",
-      "permanent": false
+      "permanent": false,
+      "missing": [
+        {
+          "type": "cookie",
+          "key": "pref-lang",
+          "value": "ro"
+        }
+      ]
     },
     {
       "source": "/produse/:slug",
@@ -91,7 +140,14 @@
         }
       ],
       "destination": "/en/produse/:slug",
-      "permanent": false
+      "permanent": false,
+      "missing": [
+        {
+          "type": "cookie",
+          "key": "pref-lang",
+          "value": "ro"
+        }
+      ]
     },
     {
       "source": "/privacy",
@@ -133,7 +189,6 @@
       "destination": "/produse",
       "permanent": true
     },
-
     {
       "source": "/shop",
       "destination": "/produse",
